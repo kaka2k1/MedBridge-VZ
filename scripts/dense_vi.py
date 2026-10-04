@@ -32,7 +32,7 @@ def encode(a):
     import torch
     from sentence_transformers import SentenceTransformer
     os.makedirs(a.out, exist_ok=True)
-    m = SentenceTransformer(MODEL, model_kwargs={"torch_dtype": torch.float16})
+    m = SentenceTransformer(a.model, model_kwargs={"torch_dtype": torch.float16})
     m.max_seq_length = a.max_len
     buf_ids, buf_tx, part = [], [], 0
 
@@ -59,7 +59,7 @@ def search(a):
     import torch
     from sentence_transformers import SentenceTransformer
     q = pd.read_parquet("data/ViBioMIR/query.parquet")
-    m = SentenceTransformer(MODEL, model_kwargs={"torch_dtype": torch.float16})
+    m = SentenceTransformer(a.model, model_kwargs={"torch_dtype": torch.float16})
     Q = torch.tensor(m.encode(q["query"].tolist(), normalize_embeddings=True, batch_size=32)).float()
     best_s = torch.full((len(q), 0), -1.0); best_i = []
     ids_all = []
@@ -85,7 +85,8 @@ if __name__ == "__main__":
     sub = ap.add_subparsers(dest="cmd", required=True)
     e = sub.add_parser("encode"); e.add_argument("--out", required=True)
     e.add_argument("--max-len", type=int, default=256); e.add_argument("--batch", type=int, default=64)
+    e.add_argument("--model", default=MODEL)
     s = sub.add_parser("search"); s.add_argument("--index", required=True); s.add_argument("--k", type=int, default=300)
-    s.add_argument("--out", required=True)
+    s.add_argument("--out", required=True); s.add_argument("--model", default=MODEL)
     a = ap.parse_args()
     encode(a) if a.cmd == "encode" else search(a)
