@@ -1,0 +1,96 @@
+"""Hợp nhất ứng viên: (BM25 → GreenNode chunk rerank) ⊕ (GreenNode dense toàn corpus) bằng RRF, rồi ghi zip nộp.
+
+    python scripts/fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --top 200 \
+        --dense data/cache/dense_gn_top300.json --w-dense 1.0 --n-docs 120 --n-chunks 80 --out submissions/v9.zip
+    (--eval-only: chỉ đếm doc đúng-đã-biết trong top-n từ data/eval/details_*.jsonl, không ghi zip)
+"""
+import argparse
+import glob
+import json
+import sys
+import zipfile
+
+import numpy as np
+import pandas as pd
+import pyarrow.parquet as pq
+
+sys.path.insert(0, "scripts")
+from chunk_v2 import select_chunks  # noqa: E402
+from rerank_vi import load_preds, pairs  # noqa: E402
+
+
+def fused_lists(a):
+    P = pairs(load_preds(a.preds), a.top)
+    S = np.load(a.scores)
+    df = pd.DataFrame(P, columns=["qid", "q", "r", "doc", "text"]).assign(s=S)
+    dense = json.load(open(a.dense))
+    plans = {int(json.loads(l)["id"]): json.loads(l) for l in open("data/cache/query_plans.jsonl")}
+    out = {}
+    for qid, g in df.groupby("qid"):
+        n = len(g)
+        f = a.alpha * g.s.rank(ascending=False) / n + (1 - a.alpha) * (g.r + 1) / n
+        g = g.assign(f=f).sort_values("f")
+        rr = {}
+        for i, d in enumerate(g.doc):
+            rr[d] = rr.get(d, 0) + 1 / (a.k + i + 1)
+        for i, (_, d) in enumerate(dense.get(str(qid), [])[:a.dense_k]):
+            rr[str(d)] = rr.get(str(d), 0) + a.w_dense / (a.k + i + 1)
+        docs = sorted(rr, key=lambda d: -rr[d])
+        out[int(qid)] = (docs, dict(zip(g.doc, g.text)), g.q.iloc[0], plans.get(int(qid)))
+    return out
+
+
+def known_pos():
+    pos = {}
+    for f in glob.glob("data/eval/details_*.jsonl"):
+        for l in open(f):
+            d = json.loads(l)
+            for p in d["chunk"]["predictions"]:
+                if p["relevant"]:
+                    pos.setdefault(int(d["id"]), set()).add(p["doc_id"].split(":")[1])
+    return pos
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True)
+    ap.add_argument("--top", type=int, default=200); ap.add_argument("--alpha", type=float, default=0.85)
+    ap.add_argument("--dense", required=True); ap.add_argument("--dense-k", type=int, default=300)
+    ap.add_argument("--w-dense", type=float, default=1.0); ap.add_argument("--k", type=int, default=60)
+    ap.add_argument("--n-docs", type=int, default=120); ap.add_argument("--n-chunks", type=int, default=80)
+    ap.add_argument("--out"); ap.add_argument("--eval-only", action="store_true")
+    a = ap.parse_args()
+    L = fused_lists(a)
+    if a.eval_only:
+        pos = known_pos()
+        for n in (60, 120):
+            print(f"w_dense={a.w_dense} known-pos in top{n}:",
+                  round(sum(len(set(L[q][0][:n]) & pos.get(q, set())) for q in L) / len(pos), 3))
+        return
+    need = {d for q, (docs, ch, *_ ) in L.items() for d in docs[:a.n_chunks] if d not in ch}
+    texts = {}
+    for f in sorted(glob.glob("data/docs/corpus-*.parquet")):
+        t = pq.read_table(f, columns=["doc_id", "text"]).to_pandas()
+        t = t[t.doc_id.astype(str).isin(need)]
+        texts.update(zip(t.doc_id.astype(str), t.text))
+    res = []
+    for qid, (docs, ch, qtext, plan) in sorted(L.items()):
+        chunks = []
+        for d in docs[:a.n_chunks]:
+            c = ch.get(d)
+            if not c and d in texts:
+                sel = select_chunks(qtext, plan, texts[d], "vi", {"target_chars": 1600})
+                c = sel[0] if sel else ""
+            if c:
+                chunks.append({"doc_id": int(d), "chunk_text": c})
+        res.append({"id": qid, "relevant_docs": [int(d) for d in docs[:a.n_docs]], "relevant_chunks": chunks})
+    ids = set(pd.read_parquet("data/ViBioMIR/query.parquet").id.astype(int))
+    res += [{"id": i, "relevant_docs": [], "relevant_chunks": []} for i in sorted(ids - {r["id"] for r in res})]
+    res.sort(key=lambda e: e["id"])
+    with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        z.writestr("submission.json", json.dumps(res, ensure_ascii=False))
+    print("wrote", a.out, len(res))
+
+
+if __name__ == "__main__":
+    main()
