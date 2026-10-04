@@ -104,6 +104,69 @@ Ghi mọi lần nộp vào `experiments.csv`. **Mỗi lần nộp chỉ đổi 1
 
 ---
 
+## 5b. Kaggle (nền tảng CHÍNH cho job nặng) – Colab là dự phòng khi hết quota Kaggle
+
+Vì sao: Kaggle free có 4 vCPU / ~30GB RAM, GPU 2×T4 (hoặc P100) ~30h/tuần, **chạy nền bằng "Save & Run All (Commit)"
+không cần mở trình duyệt** (tối đa 12h/lần), dữ liệu để trong **Kaggle Dataset** ổn định (không gặp các lỗi Drive ở mục 5).
+Colab vẫn giữ nguyên các script (`colab/*.sh`, `colab/zh_search_fast.py`) – dùng khi Kaggle hết giờ GPU/tuần hoặc cần thử nhanh.
+
+### Bước 1 – Một lần: cài Kaggle CLI + token
+```bash
+.venv/bin/pip install kaggle
+# kaggle.com → Settings → API → "Create New Token" → lưu ~/.kaggle/kaggle.json ; chmod 600 ~/.kaggle/kaggle.json
+# Bật Internet cho notebook cần xác minh số điện thoại tài khoản Kaggle.
+```
+
+### Bước 2 – Đưa dữ liệu lên Kaggle Dataset (riêng tư)
+```bash
+mkdir -p kaggle_ds/r2ai-data && cd kaggle_ds/r2ai-data
+cp ../../data/cache/query_plans.jsonl .
+# ZH: tải MyDrive/r2ai/docs_zh/*.parquet về (Drive desktop / rclone / tải zip từ web Drive) rồi GỘP shard nhỏ:
+python - <<'PY'
+import glob, pyarrow as pa, pyarrow.parquet as pq
+fs = sorted(glob.glob('/path/to/docs_zh/corpus-*.parquet'))
+for i in range(0, len(fs), 50):          # gộp 50 shard → 1 file để tránh hàng nghìn file nhỏ
+    pq.write_table(pa.concat_tables([pq.read_table(f) for f in fs[i:i+50]]), f'zh-{i//50:04d}.parquet', compression='zstd')
+PY
+cp ../../data/docs/corpus-*.parquet .     # VI (~700MB) – đổi tên vi-*.parquet nếu muốn
+kaggle datasets init -p .                 # sửa dataset-metadata.json: "title": "r2ai-data", "id": "<user>/r2ai-data"
+kaggle datasets create -p . --dir-mode zip          # lần đầu (mặc định private)
+kaggle datasets version -p . -m "thêm shard ZH" --dir-mode zip   # các lần sau
+```
+Code: tạo thêm dataset `<user>/r2ai-code` từ repo này (hoặc trong notebook `!git clone https://github.com/kaka2k1/ai-rag`).
+
+### Bước 3 – Notebook Kaggle chạy pipeline (commit chạy nền)
+Tạo `kaggle/run_pipeline.ipynb` (hoặc script) với các ô:
+```python
+!git clone -q https://github.com/kaka2k1/ai-rag /kaggle/working/ai-rag
+%cd /kaggle/working/ai-rag
+!pip -q install jieba bm25s pyvi
+DATA = '/kaggle/input/r2ai-data'
+# 1) ZH BM25 – dùng 4 nhân: thêm multiprocessing.Pool(4) cho bước jieba trong colab/zh_search_fast.py
+!python colab/zh_search_fast.py --docs {DATA} --plans {DATA}/query_plans.jsonl --out /kaggle/working/zh_preds.jsonl --k 200
+# 2) VI BM25: pipeline_v1 build + pipeline_v2 predict --dump-preds (đặt data/docs -> symlink tới {DATA})
+# 3) (GPU) rerank: src/rerank.py (bge-reranker-v2-m3) trên top-200 mỗi ngôn ngữ → cắt ngưỡng
+# 4) scripts/merge_preds.py → /kaggle/working/submission.zip
+```
+Chạy: nút **Save Version → Save & Run All (Commit)**, chọn Accelerator GPU T4×2 khi có bước rerank, bật Internet.
+Hoặc từ CLI: `kaggle kernels push -p kaggle/` (cần `kernel-metadata.json` với `"dataset_sources": ["<user>/r2ai-data"]`,
+`"enable_gpu": true`, `"enable_internet": true`), xem trạng thái `kaggle kernels status <user>/<slug>`,
+lấy kết quả `kaggle kernels output <user>/<slug> -p out/` → nộp `out/submission.zip`.
+
+### Lưu ý
+- `zh_search_fast.py` hiện tách từ 1 luồng (~17s/shard 5k doc trên Colab) → trên Kaggle nên song song hoá jieba (Pool(4)) ≈ 2–3× nhanh hơn.
+- Crawl dài (>12h) KHÔNG hợp Kaggle/Colab → crawl trên máy local (`nice -n 15`), định kỳ `kaggle datasets version` để đẩy shard mới.
+- Hết quota GPU Kaggle (30h/tuần) → quay về Colab: `colab/setup_v3.sh` + mục 5 (nhớ các lỗi đã gặp).
+
+## 5c. agy có điều khiển được trình duyệt không? (đã kiểm tra 04/10)
+- `agy -p` mặc định **KHÔNG** có tool trình duyệt (chỉ `read_url_content` đọc HTML tĩnh). Chưa có MCP nào (`agy mcp list`).
+- Bật được bằng Chrome DevTools MCP. **Khuyến nghị dùng trình duyệt cô lập** (không đụng Chrome chính đang đăng nhập email/công việc):
+  `agy mcp add chrome-devtools npx -y chrome-devtools-mcp@latest --isolated`
+  Sau đó agy tự đăng nhập leaderboard bằng `.r2ai_cred` và nộp qua UI. (`--autoConnect` = điều khiển Chrome chính của bạn – rủi ro cao hơn.)
+- Thay thế không cần MCP: nộp bằng script Playwright (`pip install playwright && playwright install chromium`) – agy viết & chạy qua run_command.
+
+---
+
 ## 6. Lộ trình tối ưu (ưu tiên từ trên xuống)
 
 1. **Nộp v3 = VI + ZH** (bước kỳ vọng tăng nhiều nhất). Thử quota: (20 VI + 60 ZH), (30 VI + 40 ZH), (10 VI + 90 ZH).

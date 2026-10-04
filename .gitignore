@@ -9,3 +9,7 @@ __pycache__/
 *.pyc
 *.zip
 *.tgz
+/test_*.py
+/test.html
+/*.cfg.json
+.venv_setup.log
