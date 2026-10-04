@@ -3,3 +3,6 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-03 12:17,baseline_v0_int.zip (4191),same doc_id=int,0.2263,0.0126,0.0041,0.0001,0.0077
 2026-10-03 12:52,v1_k40.zip (4195),BM25 VI 625k top40 chunk800,0.1639,0.1330,0.0315,0.0287,0.0728
 2026-10-03 17:36,v2_vi40_c1600x2.zip (4208),pipeline_v2 VI top40 + chunk_v2 ~1700 chars 1/doc,0.1778,0.1411,0.0924,0.0749,0.0988
+2026-10-04 13:25,v3_vi20_zh60.zip (4281),VI20 + ZH60 (BM25 jieba 780k ZH docs),0.0568,0.0995,0.0300,0.0530,0.0553
+2026-10-04 13:32,v3_vi30_zh40.zip (4283),VI30 + ZH40,,,,,0.0739
+2026-10-04 13:55,v4_vi100_c60.zip (4286),VI only top100 docs + chunk_v2 for top60,0.1218,0.2179,0.0809,0.0939,0.1193
