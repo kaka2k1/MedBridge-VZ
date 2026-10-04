@@ -63,7 +63,11 @@ def main():
     seen, mats, ids_all, dls, loc = set(), [], [], [], {}
     df = np.zeros(V, np.int64)
     for fi, f in enumerate(files):
-        t = pq.read_table(f, columns=["doc_id", "lang", "title", "text"]).to_pandas()
+        try:
+            t = pq.read_table(f, columns=["doc_id", "lang", "title", "text"]).to_pandas()
+        except Exception as e:  # shard hỏng (chép dở từ Drive) -> bỏ qua
+            logging.warning("skip %s: %s", f, str(e)[:120])
+            continue
         indptr, ind, dat, ids = [0], [], [], []
         for did, lang, ti, tx in zip(t.doc_id.astype(str), t.lang, t.title.fillna(""), t.text.fillna("")):
             if lang != "zh" or did in seen or not tx:
