@@ -13,3 +13,4 @@ __pycache__/
 /test.html
 /*.cfg.json
 .venv_setup.log
+.venv
