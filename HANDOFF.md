@@ -52,6 +52,16 @@ nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300
   ⇒ cần nguồn ứng viên dense trên toàn bộ corpus VI: `scripts/dense_vi.py` (GreenNode, title+1500 ký tự đầu, 625k doc, checkpoint
   `data/cache/dense_gn/partNNN.npy`, ~25k doc/part). Sau đó `search` → top300 dense/câu → hợp nhất RRF với BM25+GreenNode-chunk → nộp.
 
+**Quy trình v9 (dense) – đang chạy bước 1 lúc 21:30 ngày 04/10:**
+```bash
+nice .venv/bin/python scripts/dense_vi.py encode --out data/cache/dense_gn --max-len 256 --batch 64   # ~100 phút, 26 part, chạy lại sẽ bỏ qua part đã có
+nice .venv/bin/python scripts/dense_vi.py search --index data/cache/dense_gn --k 300 --out data/cache/dense_gn_top300.json
+for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy \
+    --dense data/cache/dense_gn_top300.json --w-dense $w --eval-only; done        # chọn w có nhiều doc đúng-đã-biết nhất
+.venv/bin/python scripts/fuse_dense.py ... --w-dense <w tốt nhất> --n-docs 120 --n-chunks 80 --out submissions/v9_dense.zip   # rồi nộp
+```
+Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
+
 **Việc tiếp theo theo thứ tự:**
 1. Đọc điểm v7 (ID mới nhất) → quyết định BM25 nào làm nguồn ứng viên (hoặc hợp nhất cả hai).
 2. v8: rerank GreenNode trên nguồn tốt nhất, 120 doc + 80 chunk.
