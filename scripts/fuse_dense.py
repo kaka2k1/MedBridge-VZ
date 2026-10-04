@@ -24,6 +24,7 @@ def fused_lists(a):
     S = np.load(a.scores)
     df = pd.DataFrame(P, columns=["qid", "q", "r", "doc", "text"]).assign(s=S)
     dense = json.load(open(a.dense))
+    dense2 = json.load(open(a.dense2)) if a.dense2 else {}
     plans = {int(json.loads(l)["id"]): json.loads(l) for l in open("data/cache/query_plans.jsonl")}
     out = {}
     for qid, g in df.groupby("qid"):
@@ -35,6 +36,8 @@ def fused_lists(a):
             rr[d] = rr.get(d, 0) + 1 / (a.k + i + 1)
         for i, (_, d) in enumerate(dense.get(str(qid), [])[:a.dense_k]):
             rr[str(d)] = rr.get(str(d), 0) + a.w_dense / (a.k + i + 1)
+        for i, (_, d) in enumerate(dense2.get(str(qid), [])[:a.dense_k]):
+            rr[str(d)] = rr.get(str(d), 0) + a.w_dense2 / (a.k + i + 1)
         docs = sorted(rr, key=lambda d: -rr[d])
         out[int(qid)] = (docs, dict(zip(g.doc, g.text)), g.q.iloc[0], plans.get(int(qid)))
     return out
@@ -56,7 +59,8 @@ def main():
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True)
     ap.add_argument("--top", type=int, default=200); ap.add_argument("--alpha", type=float, default=0.85)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense-k", type=int, default=300)
-    ap.add_argument("--w-dense", type=float, default=1.0); ap.add_argument("--k", type=int, default=60)
+    ap.add_argument("--w-dense", type=float, default=1.0)
+    ap.add_argument("--dense2", default=""); ap.add_argument("--w-dense2", type=float, default=1.0); ap.add_argument("--k", type=int, default=60)
     ap.add_argument("--n-docs", type=int, default=120); ap.add_argument("--n-chunks", type=int, default=80)
     ap.add_argument("--out"); ap.add_argument("--eval-only", action="store_true")
     a = ap.parse_args()
