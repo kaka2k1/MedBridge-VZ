@@ -10,3 +10,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-04 19:20,v6_gn_d150_c80.zip (4326),same as v5 but 150 docs + 80 chunks,0.1114,0.2793,0.1005,0.1392,0.1473
 2026-10-04 19:45,v7_uni_bm25_d100_c60.zip (4335),plain BM25 (syllables no bigram, raw query, full text) top100 no rerank,0.1020,0.1888,0.0658,0.0808,0.1009
 2026-10-04 20:05,v8_gn_d120_c80.zip (4339),v5 pipeline with 120 docs + 80 chunks,0.1337,0.2716,0.1005,0.1392,0.1520
+2026-10-04 23:00,v9_dense_w1.zip (4360),RRF( BM25top200->GreenNode chunk rerank , GreenNode dense top300 over full 625k VI corpus w=1.0 ) 120 docs + 80 chunks,0.1832,0.3542,0.1371,0.1820,0.2022
