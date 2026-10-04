@@ -169,6 +169,17 @@ lấy kết quả `kaggle kernels output <user>/<slug> -p out/` → nộp `out/s
 
 ## 6. Lộ trình tối ưu (ưu tiên từ trên xuống)
 
+> **CẬP NHẬT 04/10 (quan trọng hơn mọi mục bên dưới):** v3 gộp ZH (BM25 jieba trên 780k trang ZH) **làm GIẢM điểm**
+> (0.0553 / 0.0739; chunk ZH trúng chỉ 0.3%). **v4 = chỉ VI, top100 doc = 0.1193 (tốt nhất)**, 12 doc trúng/câu,
+> tỉ lệ trúng giảm rất chậm theo rank (10% → 6.5%) ⇒ gold chủ yếu là trang **VI** nằm sâu. Ưu tiên mới:
+> 1. Xếp hạng lại VI bằng model ngữ nghĩa. Đánh giá offline KHÔNG tốn lượt nộp: `scripts/eval_models.py`
+>    (nhãn thật từ `data/eval/details_4286_v4.jsonl`). Baseline thứ tự BM25: **AUC 0.559, P@10 0.116** – gần ngẫu nhiên → nhiều dư địa.
+>    Ứng viên (mở, hợp lệ): `GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1`, `BAAI/bge-m3`, `Qwen/Qwen3-Embedding-0.6B|4B`,
+>    `BAAI/bge-reranker-v2-m3`, `Qwen/Qwen3-Reranker-0.6B|4B`. KHÔNG dùng `text-embedding-004` (Gemini – đóng) hay API nội bộ công ty.
+> 2. Tăng số doc VI: thử 150/200 (precision giảm chậm, F2 ưu tiên recall); retrieve top-300 BM25 rồi rerank, cắt ~100–150.
+> 3. Dense retrieval VI (embedding toàn bộ ~625k doc VI trên Kaggle GPU) để lấy ứng viên mà BM25 bỏ sót, hợp nhất RRF.
+> 4. Crawl nốt ~110k trang VI còn thiếu. ZH để sau (chỉ thử lại khi có retrieval xuyên ngữ bằng embedding).
+
 1. **Nộp v3 = VI + ZH** (bước kỳ vọng tăng nhiều nhất). Thử quota: (20 VI + 60 ZH), (30 VI + 40 ZH), (10 VI + 90 ZH).
    Đọc details.jsonl: tỉ lệ doc ZH trúng theo thứ hạng → chọn số doc ZH tối ưu cho F2.
 2. **Số doc/câu tối ưu cho F2**: gold trung vị 60 → thường trả 60–100 doc tốt hơn 40. Dùng details.jsonl (precision theo rank) để mô phỏng F2 offline cho các mức cắt.
