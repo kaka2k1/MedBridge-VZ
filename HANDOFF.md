@@ -7,7 +7,7 @@
 
 ## 0. TRẠNG THÁI MỚI NHẤT (04/10 ~19:45) – ĐỌC MỤC NÀY TRƯỚC
 
-**Bài tốt nhất: v9 = 0.2022** (`submissions/v9_dense_w1.zip`, ID 4360 = RRF của [BM25 top200 → GreenNode chunk rerank] và [GreenNode DENSE top300 trên toàn bộ 625k doc VI], w_dense=1.0, 120 doc + 80 chunk; doc trúng 21.7/câu). Dense là bước nhảy lớn nhất → tiếp tục khai thác dense (tăng w, dense chunk-level, thêm model dense khác như bge-m3/Qwen3-Embedding để ensemble). BTC BM25 Baseline: 0.3764.
+**Bài tốt nhất: v10 = 0.2097** (`submissions/v10_dense_w2.zip`, ID 4362, w_dense=2.0; w=1 → 0.2022, w=4 → 0.2068 ⇒ tối ưu quanh w=2). Cấu trúc như v9 (ID 4360 = RRF của [BM25 top200 → GreenNode chunk rerank] và [GreenNode DENSE top300 trên toàn bộ 625k doc VI], w_dense=1.0, 120 doc + 80 chunk; doc trúng 21.7/câu). Dense là bước nhảy lớn nhất → tiếp tục khai thác dense (tăng w, dense chunk-level, thêm model dense khác như bge-m3/Qwen3-Embedding để ensemble). BTC BM25 Baseline: 0.3764.
 
 **Pipeline của bài tốt nhất (chỉ tiếng Việt, ZH đã chứng minh làm giảm điểm):**
 ```bash
@@ -32,7 +32,8 @@ nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300
 | 4326 | v6 = v5 nhưng 150 doc, 80 chunk | 0.1473 | .184 | .110 | 150 doc quá nhiều; 80 chunk tốt hơn 60 |
 | 4339 | v8 = v5 với 120 doc + 80 chunk | 0.1520 | .194 | .110 | |
 | 4360 | **v9 = v8 ⊕ dense GreenNode toàn corpus (RRF, w=1)** | **0.2022** | .258 | .147 | tốt nhất – offline (thiên BM25) đánh giá thấp dense |
-| (đang chấm) | v10 = v9 với w_dense=2.0 | ? | | | |
+| 4362 | **v10 = v9 với w_dense=2.0** | **0.2097** | .266 | .154 | **tốt nhất** |
+| 4363 | v11 = w_dense=4.0 | 0.2068 | .261 | .152 | quá nhiều dense |
 | 4335 | v7 BM25 "chuẩn" (âm tiết, không bigram, câu gốc, full text) top100, không rerank | 0.1009 | .137 | .065 | KÉM hơn v4 (0.1193) → giả thuyết BM25 chuẩn bị bác bỏ; giữ BM25 cũ |
 
 **Phát hiện then chốt:**
@@ -64,7 +65,17 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
-**Việc tiếp theo theo thứ tự:**
+**KẾ HOẠCH TIẾP (từ 05/10, sau v10 = 0.2097):**
+1. **Thêm model dense thứ 2** để ensemble trên toàn corpus: `BAAI/bge-m3` (đã có ở `data/models/bge-m3`) hoặc `Qwen/Qwen3-Embedding-0.6B`.
+   Sửa `MODEL` trong `scripts/dense_vi.py` (hoặc thêm `--model`), encode ra thư mục khác (~100 phút), search, rồi RRF 3 nguồn
+   (BM25+GN-chunk, dense GN, dense model 2) trong `fuse_dense.py`.
+2. **Chunk cho doc từ dense**: hiện chọn bằng chunk_v2 (từ khoá). Nên chấm các đoạn ~1600 ký tự của doc đó bằng GreenNode và lấy đoạn tốt nhất
+   (chunk F2 mới 0.154, doc F2 0.266 – chunk còn nhiều dư địa).
+3. **Dense cấp đoạn** (encode nhiều đoạn/doc thay vì 1500 ký tự đầu) – tốn GPU hơn (~3–5×), nên làm trên Kaggle 2×T4.
+4. Dò lại số doc/chunk khi đã có dense: thử 100 và 150 doc, 80 và 100 chunk (nhớ giới hạn ~56MB/zip).
+5. Crawl nốt ~110k trang VI còn thiếu → encode thêm vào dense + rebuild BM25.
+
+**Việc tiếp theo theo thứ tự (cũ):**
 1. Đọc điểm v7 (ID mới nhất) → quyết định BM25 nào làm nguồn ứng viên (hoặc hợp nhất cả hai).
 2. v8: rerank GreenNode trên nguồn tốt nhất, 120 doc + 80 chunk.
 3. Ensemble model: cộng thứ hạng GreenNode + bge-reranker-v2-m3 (kiểm offline bằng eval_models trước).
