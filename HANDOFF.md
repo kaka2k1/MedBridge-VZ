@@ -5,6 +5,59 @@
 
 ---
 
+## 0. TRẠNG THÁI MỚI NHẤT (04/10 ~19:45) – ĐỌC MỤC NÀY TRƯỚC
+
+**Bài tốt nhất: v5 = 0.1507** (`submissions/v5_gn_a85_d120_c60.zip`, ID 4324). BTC BM25 Baseline: 0.3764.
+
+**Pipeline của bài tốt nhất (chỉ tiếng Việt, ZH đã chứng minh làm giảm điểm):**
+```bash
+# 1) BM25 VI top-300 ứng viên + chunk_v2 (~1700 ký tự) – CPU, ~5 phút (index có sẵn data/cache/bm25_vi)
+nice .venv/bin/python scripts/pipeline_v2.py predict --out /tmp/x.zip --doc-max-vi 300 --doc-max-zh 0 \
+    --chunk-chars-vi 1600 --dump-preds data/cache/vi_preds_300.jsonl
+# 2) Chấm 200 ứng viên đầu bằng GreenNode-Embedding-Large-VN-Mixed-V1 (fp16, có checkpoint .partNNN.npy) – GPU ~80 phút trên RTX 3050
+nice .venv/bin/python scripts/rerank_vi.py score --preds data/cache/vi_preds_300.jsonl --kind embed \
+    --model GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1 --out data/cache/rr_gn_top200.npy --top 200 --batch 32
+# 3) Trộn thứ hạng (alpha=0.85 cho model) → zip nộp
+nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy \
+    --top 200 --alpha 0.85 --n-docs 120 --n-chunks 60 --out submissions/v5.zip
+```
+
+**Bảng nộp hôm 04/10:**
+| ID | Bài | FINAL | Docs F2 | Chunks F2 | Ghi chú |
+|---|---|---|---|---|---|
+| 4281 | v3 VI20+ZH60 | 0.0553 | .073 | .038 | ZH BM25 (jieba, 780k trang) gần như 0 trúng |
+| 4283 | v3 VI30+ZH40 | 0.0739 | | | |
+| 4286 | v4 VI top100 BM25 | 0.1193 | .161 | .078 | gold chủ yếu là trang VI nằm sâu |
+| 4324 | **v5 GreenNode rerank, 120 doc, 60 chunk** | **0.1507** | .194 | .108 | tốt nhất |
+| 4326 | v6 = v5 nhưng 150 doc, 80 chunk | 0.1473 | .184 | .110 | 150 doc quá nhiều; 80 chunk tốt hơn 60 |
+| (đang chấm) | v7 BM25 "chuẩn" (âm tiết, không bigram, câu gốc, full text) top100, không rerank | ? | | | so với v4 = 0.1193 để kiểm tra giả thuyết bên dưới |
+
+**Phát hiện then chốt:**
+- So sánh model offline bằng NHÃN THẬT (`scripts/eval_models.py`, nhãn từ details.jsonl): BM25 order AUC .55 / P@10 .12;
+  bge-m3 .750/.207; bge-reranker-v2-m3 .765/.218; **GreenNode-VN .787/.232** (tốt nhất). Kết quả: `docs/eval_models_results.jsonl`.
+- Dò alpha trộn (nhãn v4): alpha 0 → P@10 .147; 0.5 → .202; **0.85 → .227**; 1.0 → .228.
+- Mô phỏng F2 chunk theo số chunk (nhãn v5): 10→.049, 30→.089, 60→.107 – vẫn tăng → nên 80–100 chunk.
+- Doc: 120 tốt hơn 150. Thử 100 và 130.
+- **Giả thuyết lớn:** BTC baseline có Docs Precision .88 (!) → gold nhiều khả năng được tạo từ BM25 của BTC rồi lọc.
+  Index BM25 "chuẩn" đã build: `data/cache/bm25_vi_uni` (chạy với env `R2AI_BM25_VI_DIR=data/cache/bm25_vi_uni R2AI_VI_BIGRAMS=0 R2AI_NO_PLAN=1`),
+  ứng viên: `data/cache/vi_uni_preds_300.jsonl` (chỉ trùng 41/100 với BM25 cũ). Điểm GreenNode cho nó: `data/cache/rr_gn_uni200.npy` (đang chấm).
+  Nếu v7 > v4 (0.1193) → làm v8 = uni BM25 + GreenNode rerank; cũng thử HỢP NHẤT ứng viên của cả 2 BM25 trước khi rerank.
+
+**Việc tiếp theo theo thứ tự:**
+1. Đọc điểm v7 (ID mới nhất) → quyết định BM25 nào làm nguồn ứng viên (hoặc hợp nhất cả hai).
+2. v8: rerank GreenNode trên nguồn tốt nhất, 120 doc + 80 chunk.
+3. Ensemble model: cộng thứ hạng GreenNode + bge-reranker-v2-m3 (kiểm offline bằng eval_models trước).
+4. Thử BM25 cấp CHUNK (đoạn ~1700 ký tự) thay vì cấp doc, rồi gộp lên doc bằng max – giống cách BTC có thể đã làm.
+5. Crawl nốt ~110k trang VI còn thiếu (`python -m src.crawl --lang vi --per-domain 8`, máy local, `nice`), rebuild index.
+
+**Lưu ý vận hành:**
+- Upload zip lên leaderboard đôi khi **kẹt ở ~83–88%** không báo lỗi → reload trang và nộp lại (lượt nộp kẹt KHÔNG bị tính).
+  File > ~60MB dễ kẹt hơn; 100 doc + 60 chunk ≈ 42MB, 150 doc + 80 chunk ≈ 56MB.
+- `pkill -f "<pattern>"` trong cùng dòng lệnh sẽ tự giết shell của chính nó → dùng `pgrep` lấy PID rồi `kill <pid>`.
+- GPU local (RTX 3050): luôn dùng fp16 (`rerank_vi.py` đã làm), ~50 đoạn/giây với GreenNode.
+
+---
+
 ## 1. Những gì ĐÃ XÁC MINH về cách chấm (rất quan trọng)
 
 Nguồn: trang Evaluation/Submission Instructions + `scoring_result.zip` (evaluation.json, details.jsonl) của các lần nộp.

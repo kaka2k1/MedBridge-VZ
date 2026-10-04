@@ -1,4 +1,5 @@
 import argparse
+import os
 import glob
 import json
 import sys
@@ -104,7 +105,7 @@ class Index:
 def qvec(texts_weights, lang):
     d = {}
     for text, wt in texts_weights:
-        toks = tokenize(text, lang)
+        toks = tokenize(text, lang, {"vi_bigrams": os.environ.get("R2AI_VI_BIGRAMS", "1") == "1"} if lang == "vi" else None)
         for h in np.unique(thash(toks)):
             d[int(h)] = max(d.get(int(h), 0.0), wt)
     return d
@@ -142,10 +143,10 @@ def paragraphs(text, min_chars):
 def predict(a):
     q = pd.read_parquet(ROOT / "data/ViBioMIR/query.parquet")
     plans = {}
-    if a.use_plan:
+    if a.use_plan and os.environ.get("R2AI_NO_PLAN") != "1":
         for line in open(ROOT / "data/cache/query_plans.jsonl"):
             p = json.loads(line); plans[int(p["id"])] = p
-    ix_vi = Index(ROOT / "data/cache/bm25_vi")
+    ix_vi = Index(ROOT / os.environ.get("R2AI_BM25_VI_DIR", "data/cache/bm25_vi"))
     try:
         ix_zh = Index(ROOT / "data/cache/bm25_zh")
     except:

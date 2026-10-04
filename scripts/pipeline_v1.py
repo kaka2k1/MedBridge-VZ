@@ -20,10 +20,12 @@ sys.path.insert(0, str(ROOT))
 from src.index import tokenize  # noqa: E402
 from src.submit import complete, validate, write_zip  # noqa: E402
 
-IDX = ROOT / "data/cache/bm25_vi"
+import os
+IDX = ROOT / os.environ.get("R2AI_BM25_VI_DIR", "data/cache/bm25_vi")
+VI_TOK = {"vi_bigrams": os.environ.get("R2AI_VI_BIGRAMS", "1") == "1"}
 BITS = 23
 K1, B = 1.2, 0.75
-MAX_CHARS = 6000
+MAX_CHARS = int(os.environ.get("R2AI_MAX_CHARS", "6000"))
 
 
 def thash(toks):
@@ -69,7 +71,7 @@ def build(shard_docs=100_000):
             if did in seen:
                 continue
             seen.add(did)
-            toks = tokenize(f"{ti}\n{tx[:MAX_CHARS]}", "vi")
+            toks = tokenize(f"{ti}\n{tx[:MAX_CHARS]}", "vi", VI_TOK)
             h, c = np.unique(thash(toks), return_counts=True)
             buf.append((did, h.astype(np.int32), c.astype(np.float16), len(toks)))
             if len(buf) >= shard_docs:
