@@ -44,6 +44,14 @@ nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300
   ứng viên: `data/cache/vi_uni_preds_300.jsonl` (chỉ trùng 41/100 với BM25 cũ). Điểm GreenNode cho nó: `data/cache/rr_gn_uni200.npy` (đang chấm).
   Nếu v7 > v4 (0.1193) → làm v8 = uni BM25 + GreenNode rerank; cũng thử HỢP NHẤT ứng viên của cả 2 BM25 trước khi rerank.
 
+**Kết luận mới (04/10 tối):**
+- BM25 với tokenizer XLM-R/bge-m3 (`data/cache/bm25_vi_xlmr`, env `R2AI_HF_TOK=data/models/bge-m3`): offline chỉ tìm 3.96 doc đúng-đã-biết/top100
+  so với 6.69 của BM25 gốc → giả thuyết "BTC dùng tokenizer HF cho BM25" bị bác (không nộp).
+- Gộp ứng viên BM25 gốc + BM25 chuẩn: chỉ +4% doc đúng-đã-biết (9.08→9.46) → lợi ích nhỏ.
+- **Điểm nghẽn là RECALL ỨNG VIÊN**: gold ~71 doc/câu nhưng v8 chỉ trúng ~16 trong top120; phần lớn gold KHÔNG có trong top300 BM25.
+  ⇒ cần nguồn ứng viên dense trên toàn bộ corpus VI: `scripts/dense_vi.py` (GreenNode, title+1500 ký tự đầu, 625k doc, checkpoint
+  `data/cache/dense_gn/partNNN.npy`, ~25k doc/part). Sau đó `search` → top300 dense/câu → hợp nhất RRF với BM25+GreenNode-chunk → nộp.
+
 **Việc tiếp theo theo thứ tự:**
 1. Đọc điểm v7 (ID mới nhất) → quyết định BM25 nào làm nguồn ứng viên (hoặc hợp nhất cả hai).
 2. v8: rerank GreenNode trên nguồn tốt nhất, 120 doc + 80 chunk.
