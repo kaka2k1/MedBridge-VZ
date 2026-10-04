@@ -145,7 +145,24 @@ def _jieba():
     return jieba
 
 
+_HF_TOK = None
+
+
+def _hf_tok():
+    """Tokenizer HuggingFace (vd bge-m3/XLM-R) khi đặt env R2AI_HF_TOK=<đường dẫn>; dùng thử để mô phỏng BM25 của BTC."""
+    global _HF_TOK
+    if _HF_TOK is None:
+        import os
+        from tokenizers import Tokenizer
+        _HF_TOK = Tokenizer.from_file(os.path.join(os.environ["R2AI_HF_TOK"], "tokenizer.json"))
+    return _HF_TOK
+
+
 def tokenize(text: str, lang: str, bcfg: dict | None = None) -> list[str]:
+    import os
+    if os.environ.get("R2AI_HF_TOK"):
+        toks = _hf_tok().encode(unicodedata.normalize("NFKC", text).lower(), add_special_tokens=False).tokens
+        return [t for t in toks if t.strip("\u2581")]
     bcfg = bcfg or {}
     text = unicodedata.normalize("NFC", text).lower()
     if lang == "zh":

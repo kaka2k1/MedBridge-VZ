@@ -7,7 +7,7 @@
 
 ## 0. TRẠNG THÁI MỚI NHẤT (04/10 ~19:45) – ĐỌC MỤC NÀY TRƯỚC
 
-**Bài tốt nhất: v5 = 0.1507** (`submissions/v5_gn_a85_d120_c60.zip`, ID 4324). BTC BM25 Baseline: 0.3764.
+**Bài tốt nhất: v8 = 0.1520** (`submissions/v8_gn_d120_c80.zip`, ID 4339 = pipeline v5 với 120 doc + 80 chunk). BTC BM25 Baseline: 0.3764.
 
 **Pipeline của bài tốt nhất (chỉ tiếng Việt, ZH đã chứng minh làm giảm điểm):**
 ```bash
@@ -30,6 +30,7 @@ nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300
 | 4286 | v4 VI top100 BM25 | 0.1193 | .161 | .078 | gold chủ yếu là trang VI nằm sâu |
 | 4324 | **v5 GreenNode rerank, 120 doc, 60 chunk** | **0.1507** | .194 | .108 | tốt nhất |
 | 4326 | v6 = v5 nhưng 150 doc, 80 chunk | 0.1473 | .184 | .110 | 150 doc quá nhiều; 80 chunk tốt hơn 60 |
+| 4339 | **v8 = v5 với 120 doc + 80 chunk** | **0.1520** | .194 | .110 | tốt nhất |
 | 4335 | v7 BM25 "chuẩn" (âm tiết, không bigram, câu gốc, full text) top100, không rerank | 0.1009 | .137 | .065 | KÉM hơn v4 (0.1193) → giả thuyết BM25 chuẩn bị bác bỏ; giữ BM25 cũ |
 
 **Phát hiện then chốt:**

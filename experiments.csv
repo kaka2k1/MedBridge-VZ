@@ -9,3 +9,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-04 19:00,v5_gn_a85_d120_c60.zip (4324),BM25 top200 VI -> GreenNode-VN embedding rerank (alpha .85 rank fusion) top120 docs + 60 chunks,0.1337,0.2716,0.1187,0.1270,0.1507
 2026-10-04 19:20,v6_gn_d150_c80.zip (4326),same as v5 but 150 docs + 80 chunks,0.1114,0.2793,0.1005,0.1392,0.1473
 2026-10-04 19:45,v7_uni_bm25_d100_c60.zip (4335),plain BM25 (syllables no bigram, raw query, full text) top100 no rerank,0.1020,0.1888,0.0658,0.0808,0.1009
+2026-10-04 20:05,v8_gn_d120_c80.zip (4339),v5 pipeline with 120 docs + 80 chunks,0.1337,0.2716,0.1005,0.1392,0.1520
