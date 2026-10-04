@@ -1,0 +1,5 @@
+date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
+2026-10-03 11:45,baseline_v0.zip (4186),BM25 VI 205k docs top3 doc_id=str,0,0,0,0,0.0000
+2026-10-03 12:17,baseline_v0_int.zip (4191),same doc_id=int,0.2263,0.0126,0.0041,0.0001,0.0077
+2026-10-03 12:52,v1_k40.zip (4195),BM25 VI 625k top40 chunk800,0.1639,0.1330,0.0315,0.0287,0.0728
+2026-10-03 17:36,v2_vi40_c1600x2.zip (4208),pipeline_v2 VI top40 + chunk_v2 ~1700 chars 1/doc,0.1778,0.1411,0.0924,0.0749,0.0988
