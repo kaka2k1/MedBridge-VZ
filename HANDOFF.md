@@ -30,7 +30,7 @@ nice .venv/bin/python scripts/rerank_vi.py write --preds data/cache/vi_preds_300
 | 4286 | v4 VI top100 BM25 | 0.1193 | .161 | .078 | gold chủ yếu là trang VI nằm sâu |
 | 4324 | **v5 GreenNode rerank, 120 doc, 60 chunk** | **0.1507** | .194 | .108 | tốt nhất |
 | 4326 | v6 = v5 nhưng 150 doc, 80 chunk | 0.1473 | .184 | .110 | 150 doc quá nhiều; 80 chunk tốt hơn 60 |
-| (đang chấm) | v7 BM25 "chuẩn" (âm tiết, không bigram, câu gốc, full text) top100, không rerank | ? | | | so với v4 = 0.1193 để kiểm tra giả thuyết bên dưới |
+| 4335 | v7 BM25 "chuẩn" (âm tiết, không bigram, câu gốc, full text) top100, không rerank | 0.1009 | .137 | .065 | KÉM hơn v4 (0.1193) → giả thuyết BM25 chuẩn bị bác bỏ; giữ BM25 cũ |
 
 **Phát hiện then chốt:**
 - So sánh model offline bằng NHÃN THẬT (`scripts/eval_models.py`, nhãn từ details.jsonl): BM25 order AUC .55 / P@10 .12;
