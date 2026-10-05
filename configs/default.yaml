@@ -88,9 +88,9 @@ crawl:                            # src/crawl.py (see docs/crawl_report.md)
   retries: 3
   backoff_base: 1.5
   max_bytes: 4000000
-  flush_every: 20
+  flush_every: 5000
   min_chars: 30
-  extract_workers: 6
+  extract_workers: 2
   dead_after: 25
   max_runs: 3
   domain_overrides: {}            # e.g. {120ask.com: {concurrency: 12, delay: 0.05}}; also headers:/cookies: per domain
