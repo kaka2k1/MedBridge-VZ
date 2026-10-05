@@ -13,7 +13,7 @@ IDS = glob.glob("/kaggle/input/**/ids_kaggle.csv", recursive=True)[0]
 os.makedirs(f"{W}/r2ai", exist_ok=True)
 os.chdir(f"{W}/r2ai")
 subprocess.run(f"tar xzf {SRC}", shell=True, check=True)
-subprocess.run(f"{sys.executable} -m pip -q install curl_cffi==0.16.3 trafilatura==2.2.0 selectolax lxml_html_clean polars zstandard orjson "
+subprocess.run(f"{sys.executable} -m pip -q install curl_cffi==0.16.3 trafilatura==2.2.0 selectolax==0.4.13 lxml_html_clean polars zstandard orjson "
                f"charset-normalizer pyyaml huggingface_hub", shell=True)
 subprocess.run("hf download AIGuruTinix/ViBioMIR links_corpus.parquet --repo-type dataset --local-dir data/ViBioMIR "
                "|| huggingface-cli download AIGuruTinix/ViBioMIR links_corpus.parquet --repo-type dataset --local-dir data/ViBioMIR",
