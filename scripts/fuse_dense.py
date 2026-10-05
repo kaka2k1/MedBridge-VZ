@@ -63,6 +63,7 @@ def main():
     ap.add_argument("--dense2", default=""); ap.add_argument("--w-dense2", type=float, default=1.0); ap.add_argument("--k", type=int, default=60)
     ap.add_argument("--n-docs", type=int, default=120); ap.add_argument("--n-chunks", type=int, default=80)
     ap.add_argument("--out"); ap.add_argument("--eval-only", action="store_true")
+    ap.add_argument("--adaptive", type=float, default=0, help=">0: số doc/câu = hệ số × số gold dự đoán (40..200)")
     a = ap.parse_args()
     L = fused_lists(a)
     if a.eval_only:
@@ -71,23 +72,35 @@ def main():
             print(f"w_dense={a.w_dense} known-pos in top{n}:",
                   round(sum(len(set(L[q][0][:n]) & pos.get(q, set())) for q in L) / len(pos), 3))
         return
-    need = {d for q, (docs, ch, *_ ) in L.items() for d in docs[:a.n_chunks] if d not in ch}
+    need = {d for q, (docs, ch, *_ ) in L.items() for d in docs[:130] if d not in ch}
     texts = {}
     for f in sorted(glob.glob("data/docs/corpus-*.parquet")):
         t = pq.read_table(f, columns=["doc_id", "text"]).to_pandas()
         t = t[t.doc_id.astype(str).isin(need)]
         texts.update(zip(t.doc_id.astype(str), t.text))
+    nd, nc = {}, {}
+    if a.adaptive:
+        # số doc theo từng câu: điểm dense hạng 50 → phân vị → số gold dự đoán (map từ public details) × hệ số
+        mp = json.load(open("data/cache/gold_count_map.json")); xs, ys = np.array(mp["xs"]), np.array(mp["ys"])
+        dn = json.load(open(a.dense))
+        for qid in L:
+            v = dn.get(str(qid), [])
+            s50 = v[49][0] if len(v) > 49 else (v[-1][0] if v else 0)
+            pred = np.quantile(ys, min(1.0, np.searchsorted(xs, s50) / len(xs)))
+            nd[qid] = int(np.clip(round(a.adaptive * pred), 40, 200))
+            nc[qid] = int(np.clip(round(nd[qid] * 0.67), 30, 130))
     res = []
     for qid, (docs, ch, qtext, plan) in sorted(L.items()):
+        n_docs, n_chunks = nd.get(qid, a.n_docs), nc.get(qid, a.n_chunks)
         chunks = []
-        for d in docs[:a.n_chunks]:
+        for d in docs[:n_chunks]:
             c = ch.get(d)
             if not c and d in texts:
                 sel = select_chunks(qtext, plan, texts[d], "vi", {"target_chars": 1600})
                 c = sel[0] if sel else ""
             if c:
                 chunks.append({"doc_id": int(d), "chunk_text": c})
-        res.append({"id": qid, "relevant_docs": [int(d) for d in docs[:a.n_docs]], "relevant_chunks": chunks})
+        res.append({"id": qid, "relevant_docs": [int(d) for d in docs[:n_docs]], "relevant_chunks": chunks})
     ids = set(pd.read_parquet("data/ViBioMIR/query.parquet").id.astype(int))
     res += [{"id": i, "relevant_docs": [], "relevant_chunks": []} for i in sorted(ids - {r["id"] for r in res})]
     res.sort(key=lambda e: e["id"])
