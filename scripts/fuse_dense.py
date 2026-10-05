@@ -64,6 +64,7 @@ def main():
     ap.add_argument("--n-docs", type=int, default=120); ap.add_argument("--n-chunks", type=int, default=80)
     ap.add_argument("--out"); ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--adaptive", type=float, default=0, help=">0: số doc/câu = hệ số × số gold dự đoán (40..200)")
+    ap.add_argument("--chunk-ratio", type=float, default=0.67)
     a = ap.parse_args()
     L = fused_lists(a)
     if a.eval_only:
@@ -88,7 +89,7 @@ def main():
             s50 = v[49][0] if len(v) > 49 else (v[-1][0] if v else 0)
             pred = np.quantile(ys, min(1.0, np.searchsorted(xs, s50) / len(xs)))
             nd[qid] = int(np.clip(round(a.adaptive * pred), 40, 200))
-            nc[qid] = int(np.clip(round(nd[qid] * 0.67), 30, 130))
+            nc[qid] = int(np.clip(round(nd[qid] * a.chunk_ratio), 30, 130))
     res = []
     for qid, (docs, ch, qtext, plan) in sorted(L.items()):
         n_docs, n_chunks = nd.get(qid, a.n_docs), nc.get(qid, a.n_chunks)
