@@ -65,6 +65,14 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**BÀI TỐT NHẤT (05/10 23:00): v19 = 0.2228** (`submissions/v19_a22_cr90.zip`, ID 4488):
+`fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300.json --w-dense 2.0 --adaptive 2.2 --chunk-ratio 0.9`
+- **--adaptive**: số doc/câu = hệ số × số gold dự đoán từ điểm dense ở hạng 50 (Spearman 0.66 với số gold; map `data/cache/gold_count_map.json`
+  khớp trên 600 câu public). 1.7→0.2183, 2.0→0.2211, 2.2→0.2224, 2.4→docs F2 phẳng. Chunk ratio 0.55 < 0.67 < 0.75 < 0.9 (gần bão hoà, zip 70MB).
+- Qwen3-Reranker-4B (Kaggle, offline 12k cặp có nhãn): AUC .752 / P@10 .210 < GreenNode .787/.232 → model lớn KHÔNG giúp; ưu tiên model chuyên tiếng Việt.
+- Long Châu chặn IP máy local (HTTP 429/blocked) → crawl nửa id lẻ chạy trên Kaggle (`kaggle_crawl/`, kernel `kakaoffical/r2ai-crawl-vi`);
+  nửa id chẵn (`colab/vi_remaining_even.csv`, ~37k Long Châu) cần chạy Kaggle lượt 2 (đổi ids_kaggle.csv trong dataset r2ai-crawler).
+
 **KAGGLE (đã chạy 05/10 20:30):** token ở `~/.kaggle/access_token` (KHÔNG commit; dùng `export KAGGLE_API_TOKEN=$(cat ~/.kaggle/access_token)`).
 - Dataset riêng tư `kakaoffical/r2ai-vi-docs` = 628,732 doc VI gộp thành 9 parquet + query.parquet (tạo bằng script gộp shard, xem lịch sử chat/commit).
   Cập nhật khi crawl thêm: thêm file parquet mới vào thư mục rồi `kaggle datasets version -p <dir> -m "..."`.
