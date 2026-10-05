@@ -22,3 +22,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-05 22:45,v18_a22_cr75.zip (4487),adaptive 2.2 + chunk ratio 0.75 (~93 chunks/q),0.1901,0.3637,0.1445,0.1919,0.2224
 2026-10-05 23:00,v19_a22_cr90.zip (4488),adaptive 2.2 + chunk ratio 0.9 (~108 chunks/q; 70MB zip),0.1901,0.3637,0.1375,0.1978,0.2228
 2026-10-06 03:50,v20_dchunk_w1.zip (4503),v18 config + chunk-level GreenNode dense (Kaggle; <=6 windows/doc) as 3rd RRF source w=1; its windows used as chunks for non-BM25 docs,0.1987,0.3827,0.1474,0.1971,0.2310
+2026-10-06 03:58,v21_dchunk_w2.zip (4504),v20 with chunk-level dense weight 2.0,0.1997,0.3848,0.1461,0.1981,0.2315
