@@ -65,7 +65,11 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
-**SẴN SÀNG NỘP (05/10, sau 07:00 – hạn mức ngày reset theo UTC = 07:00 giờ VN):**
+**05/10:** v12 (thêm dense bge-m3 làm nguồn RRF thứ 3) = **0.2088** ≈ v10 0.2097 → bge-m3 không giúp (trùng GreenNode).
+Chunk của doc CHỈ đến từ dense trúng 12.1% vs 16.9% của doc từ BM25 (đã chấm đoạn bằng GreenNode) →
+`scripts/chunk_rerank.py` chọn lại chunk cho nhóm này bằng GreenNode (4 cửa sổ ~1600 ký tự/doc + chunk cũ) → v13 (đang chạy).
+
+**(cũ) SẴN SÀNG NỘP (05/10, sau 07:00 – hạn mức ngày reset theo UTC = 07:00 giờ VN):**
 - `submissions/v12_gn2_bgem3_1.zip`: RRF 3 nguồn = BM25+GreenNode-chunk ⊕ dense GreenNode (w=2) ⊕ dense **bge-m3** (w=1, `data/cache/dense_bgem3_top300.json`,
   encode xong toàn corpus `data/cache/dense_bgem3/`). Lệnh tạo:
   `fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300.json --w-dense 2.0 --dense2 data/cache/dense_bgem3_top300.json --w-dense2 1.0 --n-docs 120 --n-chunks 80`

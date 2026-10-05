@@ -13,3 +13,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-04 23:00,v9_dense_w1.zip (4360),RRF( BM25top200->GreenNode chunk rerank , GreenNode dense top300 over full 625k VI corpus w=1.0 ) 120 docs + 80 chunks,0.1832,0.3542,0.1371,0.1820,0.2022
 2026-10-04 23:10,v10_dense_w2.zip (4362),same as v9 with w_dense=2.0,0.1914,0.3597,0.1477,0.1883,0.2097
 2026-10-04 23:15,v11_dense_w4.zip (4363),same as v9 with w_dense=4.0,0.1897,0.3511,0.1483,0.1830,0.2068
+2026-10-05 18:12,v12_gn2_bgem3_1.zip (4469),v10 + bge-m3 dense as 3rd RRF source (w=1),0.1906,0.3576,0.1487,0.1869,0.2088
