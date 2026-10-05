@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import re
 
-from selectolax.parser import HTMLParser
+try:
+    from selectolax.parser import HTMLParser
+except ImportError:  # selectolax >= 1.0 bỏ backend modest -> dùng lexbor (API tương thích)
+    from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from .text import join_paras, norm_para, normalize_text
 
