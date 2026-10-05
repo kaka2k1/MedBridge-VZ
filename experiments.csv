@@ -16,3 +16,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-05 18:12,v12_gn2_bgem3_1.zip (4469),v10 + bge-m3 dense as 3rd RRF source (w=1),0.1906,0.3576,0.1487,0.1869,0.2088
 2026-10-05 18:25,v14_w2_d100_c80.zip (4470),v10 config with 100 docs (instead of 120),0.2110,0.3374,0.1477,0.1883,0.2081
 2026-10-05 19:05,v13_v10_chunkrr.zip (4474),v10 + GreenNode re-selection of chunks for dense-only docs (15482 changed),0.1914,0.3597,0.1469,0.1885,0.2096
+2026-10-05 21:45,v15_adaptive17.zip (4481),v10 fusion + adaptive per-query n_docs = 1.7 x predicted gold (from dense score@50 quantile map) [40..200]; n_chunks=0.67 n_docs,0.2050,0.3465,0.1565,0.1772,0.2183
