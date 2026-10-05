@@ -14,7 +14,7 @@ import pandas as pd
 import pyarrow.parquet as pq
 import torch
 
-DATA = os.environ.get("R2AI_DATA", "/kaggle/input/r2ai-data")
+DATA = os.environ.get("R2AI_DATA", "/kaggle/input")
 OUT = os.environ.get("R2AI_OUT", "/kaggle/working")
 MODEL = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
 MAX_W, TARGET, TOPK_W, TOPN_DOC = 6, 1600, 1500, 300
@@ -41,7 +41,6 @@ def main():
     m = SentenceTransformer(MODEL, model_kwargs={"torch_dtype": torch.float16})
     m.max_seq_length = 512
     Q = torch.tensor(m.encode(q["query"].tolist(), normalize_embeddings=True, batch_size=64)).float().cuda()
-    pool = m.start_multi_process_pool() if torch.cuda.device_count() > 1 else None
     best_s = torch.full((len(q), 0), -1.0, device="cuda"); best_i = torch.zeros((len(q), 0), dtype=torch.long, device="cuda")
     meta = []                      # global window index -> (doc_id, file_idx, start_char) ; text giữ ở ổ đĩa để tiết kiệm RAM
     texts_all = []
@@ -60,8 +59,7 @@ def main():
         if not W:
             continue
         inp = [f"{w}" for w in W]
-        E = (m.encode_multi_process(inp, pool, batch_size=64, normalize_embeddings=True) if pool
-             else m.encode(inp, batch_size=64, normalize_embeddings=True))
+        E = m.encode(inp, batch_size=64, normalize_embeddings=True)
         E = torch.tensor(E).float().cuda()
         base = len(meta)
         meta += D; texts_all += W
@@ -72,8 +70,6 @@ def main():
         o = best_s.topk(min(TOPK_W, best_s.shape[1]), dim=1).indices
         best_s = best_s.gather(1, o); best_i = best_i.gather(1, o)
         print(f"file {fi + 1}/{len(files)} windows {len(meta)}", flush=True)
-    if pool:
-        m.stop_multi_process_pool(pool)
     res = {}
     bs, bi = best_s.cpu().numpy(), best_i.cpu().numpy()
     for r, qid in enumerate(q.id):

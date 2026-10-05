@@ -65,6 +65,15 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**KAGGLE (đã chạy 05/10 20:30):** token ở `~/.kaggle/access_token` (KHÔNG commit; dùng `export KAGGLE_API_TOKEN=$(cat ~/.kaggle/access_token)`).
+- Dataset riêng tư `kakaoffical/r2ai-vi-docs` = 628,732 doc VI gộp thành 9 parquet + query.parquet (tạo bằng script gộp shard, xem lịch sử chat/commit).
+  Cập nhật khi crawl thêm: thêm file parquet mới vào thư mục rồi `kaggle datasets version -p <dir> -m "..."`.
+- Kernel `kakaoffical/r2ai-dense-chunks` (thư mục `kaggle/`: `dense_chunks.py` + `kernel-metadata.json`, GPU, internet):
+  dense CẤP ĐOẠN GreenNode (≤6 cửa sổ ~1600 ký tự/doc) → `dense_chunks_top.json` {qid: [[score, doc_id, chunk_text]...300 doc]}.
+  Chạy: `kaggle kernels push -p kaggle`; theo dõi `kaggle kernels status kakaoffical/r2ai-dense-chunks`;
+  lấy kết quả `kaggle kernels output kakaoffical/r2ai-dense-chunks -p data/cache/kaggle_out`.
+  Sau đó gộp: nguồn RRF mới trong `fuse_dense.py` (doc từ dense_chunks dùng luôn chunk_text của nó).
+
 **05/10 tối – tổng kết:** bài tốt nhất vẫn **v10 = 0.2097**. Đã thử, KHÔNG cải thiện: v12 thêm dense bge-m3 (0.2088), v13 chọn lại chunk
 bằng GreenNode cho doc từ dense (0.2096), v14 100 doc (0.2081). Offline: ensemble GreenNode + bge-reranker-v2-m3 chỉ P@10 .232→.237 (+2%, chưa đáng chạy 240k cặp).
 ⇒ Đã chạm trần của "dense trên 1500 ký tự đầu + BM25". Đòn bẩy còn lại: (a) **dense cấp ĐOẠN** (`kaggle/dense_chunks.py`, cần Kaggle GPU – chờ token
