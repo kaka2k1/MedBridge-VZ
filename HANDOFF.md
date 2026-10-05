@@ -65,6 +65,13 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**05/10 tối – tổng kết:** bài tốt nhất vẫn **v10 = 0.2097**. Đã thử, KHÔNG cải thiện: v12 thêm dense bge-m3 (0.2088), v13 chọn lại chunk
+bằng GreenNode cho doc từ dense (0.2096), v14 100 doc (0.2081). Offline: ensemble GreenNode + bge-reranker-v2-m3 chỉ P@10 .232→.237 (+2%, chưa đáng chạy 240k cặp).
+⇒ Đã chạm trần của "dense trên 1500 ký tự đầu + BM25". Đòn bẩy còn lại: (a) **dense cấp ĐOẠN** (`kaggle/dense_chunks.py`, cần Kaggle GPU – chờ token
+`~/.kaggle/kaggle.json`), (b) **crawl nốt VI** – đang chạy: `logs/crawl_vi_rest.log` (110k URL, chủ yếu nhathuoclongchau 74k, phunusuckhoe 27k) →
+xong thì `pipeline_v1.py build` lại + `dense_vi.py encode` (chỉ part mới) + `search` + `fuse_dense.py`.
+**Lưu ý:** `configs/default.yaml` từng bị đặt `flush_every: 20` (sinh hàng nghìn shard nhỏ) – đã sửa về 5000.
+
 **05/10:** v12 (thêm dense bge-m3 làm nguồn RRF thứ 3) = **0.2088** ≈ v10 0.2097 → bge-m3 không giúp (trùng GreenNode).
 Chunk của doc CHỈ đến từ dense trúng 12.1% vs 16.9% của doc từ BM25 (đã chấm đoạn bằng GreenNode) →
 `scripts/chunk_rerank.py` chọn lại chunk cho nhóm này bằng GreenNode (4 cửa sổ ~1600 ký tự/doc + chunk cũ) → v13 (đang chạy).
