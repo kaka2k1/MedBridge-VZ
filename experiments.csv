@@ -25,3 +25,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-06 03:58,v21_dchunk_w2.zip (4504),v20 with chunk-level dense weight 2.0,0.1997,0.3848,0.1461,0.1981,0.2315
 2026-10-06 07:55,v22_d3w3.zip (4507),v21 with chunk-level dense weight 3.0,0.1976,0.3825,0.1440,0.1957,0.2293
 2026-10-06 08:03,v23_d3w2_cr90.zip (4509),v21 with chunk ratio 0.9,0.1997,0.3848,0.1394,0.2056,0.2324
+2026-10-06 08:20,v24_mq.zip (4515),v23 + multi-query GreenNode dense (max over query+3 plan variants) as extra RRF source w=1,0.1998,0.3824,0.1410,0.2047,0.2326
