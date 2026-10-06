@@ -60,6 +60,12 @@ def search(a):
     from sentence_transformers import SentenceTransformer
     q = pd.read_parquet("data/ViBioMIR/query.parquet")
     m = SentenceTransformer(a.model, model_kwargs={"torch_dtype": torch.float16})
+    if a.plans:   # đa truy vấn: câu gốc + tối đa 3 biến thể/ý con từ query plan; điểm doc = max qua các biến thể
+        plans = {int(json.loads(l)["id"]): json.loads(l) for l in open(a.plans)}
+        var = [[t] + [v for v in plans.get(int(i), {}).get("vi", [])[:3] if v.strip()] for i, t in zip(q.id, q["query"])]
+        flat = [v for vs in var for v in vs]; owner = [r for r, vs in enumerate(var) for _ in vs]
+        QV = torch.tensor(m.encode(flat, normalize_embeddings=True, batch_size=32)).float()
+        owner = torch.tensor(owner)
     Q = torch.tensor(m.encode(q["query"].tolist(), normalize_embeddings=True, batch_size=32)).float()
     best_s = torch.full((len(q), 0), -1.0); best_i = []
     ids_all = []
@@ -67,7 +73,11 @@ def search(a):
         E = torch.tensor(np.load(f)).float()
         ids = json.load(open(f.replace(".npy", ".ids.json")))
         base = len(ids_all); ids_all += ids
-        s = Q @ E.T
+        if a.plans:
+            sv = QV @ E.T
+            s = torch.full((len(q), E.shape[0]), -1.0).scatter_reduce(0, owner[:, None].expand(-1, E.shape[0]), sv, reduce="amax")
+        else:
+            s = Q @ E.T
         ts, ti = s.topk(min(a.k, s.shape[1]), dim=1)
         best_s = torch.cat([best_s, ts], 1)
         best_i.append(ti + base)
@@ -88,5 +98,6 @@ if __name__ == "__main__":
     e.add_argument("--model", default=MODEL)
     s = sub.add_parser("search"); s.add_argument("--index", required=True); s.add_argument("--k", type=int, default=300)
     s.add_argument("--out", required=True); s.add_argument("--model", default=MODEL)
+    s.add_argument("--plans", default="", help="query_plans.jsonl -> đa truy vấn (max)")
     a = ap.parse_args()
     encode(a) if a.cmd == "encode" else search(a)
