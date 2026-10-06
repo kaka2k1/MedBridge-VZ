@@ -37,8 +37,8 @@ def fused_lists(a):
             rr[d] = rr.get(d, 0) + 1 / (a.k + i + 1)
         for i, (_, d) in enumerate(dense.get(str(qid), [])[:a.dense_k]):
             rr[str(d)] = rr.get(str(d), 0) + a.w_dense / (a.k + i + 1)
-        for i, (_, d) in enumerate(dense2.get(str(qid), [])[:a.dense_k]):
-            rr[str(d)] = rr.get(str(d), 0) + a.w_dense2 / (a.k + i + 1)
+        for i, x in enumerate(dense2.get(str(qid), [])[:a.dense_k]):   # [score, doc] hoặc [score, doc, text]
+            rr[str(x[1])] = rr.get(str(x[1]), 0) + a.w_dense2 / (a.k + i + 1)
         ch3 = {}
         for i, (_, d, txt) in enumerate(dense3.get(str(qid), [])[:a.dense_k]):
             rr[str(d)] = rr.get(str(d), 0) + a.w_dense3 / (a.k + i + 1)
