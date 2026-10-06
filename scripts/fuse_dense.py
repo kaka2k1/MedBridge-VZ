@@ -145,6 +145,8 @@ def main():
     ids = set(pd.read_parquet("data/ViBioMIR/query.parquet").id.astype(int))
     res += [{"id": i, "relevant_docs": [], "relevant_chunks": []} for i in sorted(ids - {r["id"] for r in res})]
     res.sort(key=lambda e: e["id"])
+    if a.lzma:
+        import zip_lzma  # noqa: F401  (vá zipfile: LZMA preset 9e, từ điển 512MB)
     with zipfile.ZipFile(a.out, "w", zipfile.ZIP_LZMA) if a.lzma else zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         z.writestr("submission.json", json.dumps(res, ensure_ascii=False))
     print("wrote", a.out, len(res))

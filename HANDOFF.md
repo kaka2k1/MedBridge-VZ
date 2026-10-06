@@ -65,7 +65,8 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
-**BÀI TỐT NHẤT (06/10 23:40): v28 = 0.2671** (ID 4624; docs F2 .300, chunks F2 .234). Ba phát hiện lớn tối 06/10:
+**BÀI TỐT NHẤT (07/10 00:45): v31 = 0.2980** (ID 4633; `--chunk-chars 8000 --chunk-ratio 1.2 --chunk-max 200 --lzma`, LZMA từ điển 512MB qua `scripts/zip_lzma.py` nén 530MB JSON còn ~50–75MB; chunks F2 .296). Trước đó v30 c5000 = 0.2892, v29 c3600 = 0.2791.
+**v28 = 0.2671** (ID 4624; docs F2 .300, chunks F2 .234). Ba phát hiện lớn tối 06/10:
 1. **Chunk dài hơn = trúng nhiều hơn** (overlap chia cho độ dài GOLD, thể lệ không giới hạn độ dài chunk_text): `--chunk-chars 2400` nới mỗi chunk
    thành đoạn nguyên văn liền mạch 2400 ký tự → chunks F2 .1785 → .2342. Đang thử 3600 (v29). Giới hạn upload **100MB**.
 2. **LTR** `scripts/ltr.py` (LightGBM, nhãn = chunk trúng; đặc trưng hạng/điểm mọi nguồn + domain prior + trùng tiêu đề + độ dài doc;

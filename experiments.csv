@@ -30,3 +30,6 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-06 23:10,v27_ltr_oof_lzma.zip (4621),v26 + LightGBM LTR order (OOF for public queries; label=chunk hit) for docs+chunks; LZMA zip via Kaggle relay,0.1973,0.3825,0.1475,0.2150,0.2362
 2026-10-06 23:20,v28_ltr2_c2400_lzma.zip (4622 nộp bởi người dùng qua trình duyệt),v27 + LTR2 (title/len features) + chunk expanded to 2400 chars,0.1973,0.3829,0.1929,0.2802,0.2642
 2026-10-06 23:40,v28_rrfdocs_ltr2chunks_c2400.zip (4624),docs=RRF (v26) + chunks from LTR2 order expanded to 2400 chars; LZMA via relay,0.2006,0.3922,0.1929,0.2802,0.2671
+2026-10-06 23:55,v29_c3600.zip (4625),v28 with chunk 3600 chars,0.2006,0.3922,0.2085,0.3111,0.2791
+2026-10-07 00:10,v30_c5000.zip (4628),v28 with chunk 5000 chars (86.5MB lzma),0.2006,0.3922,0.2200,0.3380,0.2892
+2026-10-07 00:45,v31_c8000_cr12.zip (4633),v30 with chunk 8000 chars + chunk-ratio 1.2 + chunk-max 200 (146 chunks/q); LZMA preset9e dict512MB (74.6MB),0.2006,0.3922,0.1849,0.4005,0.2980
