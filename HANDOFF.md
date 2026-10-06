@@ -77,7 +77,7 @@ Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên v
 Lệnh v28:
 `fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300_v2.json --w-dense 2.0 --dense2 data/cache/kaggle_bgem3_out/dense_chunks_top.json --w-dense2 1.0 --dense3 data/cache/dense_chunks_top_v2.json --w-dense3 2.0 --adaptive 2.2 --chunk-ratio 0.9 --order data/cache/ltr_order_oof2.json --order-chunks-only --chunk-chars 2400 --lzma --out submissions/v28.zip`
 Đang chạy: dense cấp đoạn bằng GreenNode fine-tune trên nhãn (Kaggle `r2ai-dense-chunks` v3, kernel_sources r2ai-finetune-gn; held-out lần 1: AUC .693→.731),
-LLM giám khảo Qwen3-8B (`kaggle_llm/`, so với GreenNode AUC .787 trên 12k cặp).
+LLM giám khảo Qwen3-8B (`kaggle_llm/`): AUC .660 / P@10 .163 << GreenNode .787 / .232 ⇒ LLM pointwise KHÔNG giúp, bỏ.
 
 **BÀI TỐT NHẤT (06/10 20:10): v26 = 0.2355** (`submissions/v26_newdocs.zip`, ID 4615; docs F2 .300, chunks F2 .171) = v23 + dense cấp đoạn bge-m3
 (Kaggle `kaggle_bgem3/`, w=1) + **index dense có thêm ~23k doc mới crawl** (doc-level `dense_gn_top300_v2.json` = encode lại 27 part + search;
