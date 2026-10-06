@@ -30,12 +30,25 @@ def session():
 def submit(s, path, phase):
     name = os.path.basename(path)
     size = os.path.getsize(path)
-    d = s.post(f"{BASE}/api/datasets/", json={"type": "submission", "request_sassy_file_name": name, "name": name,
-                                             "description": "", "is_public": False, "file_size": size}).json()
-    key, url = d["key"], d["sassy_url"]
-    with open(path, "rb") as f:
-        r = requests.put(url, data=f, headers={"Content-Type": "application/zip"}, timeout=3600)
-    r.raise_for_status()
+    for attempt in range(6):   # PUT lớn đôi khi bị SSLEOF -> xin URL mới và thử lại
+        nm = name if attempt == 0 else name.replace(".zip", f"_r{int(time.time())}.zip")   # tên trùng -> bị từ chối
+        d = s.post(f"{BASE}/api/datasets/", json={"type": "submission", "request_sassy_file_name": nm, "name": nm,
+                                                 "description": "", "is_public": False, "file_size": size}).json()
+        if "key" not in d:
+            print("dataset create rejected:", str(d)[:300], flush=True)
+            continue
+        key, url = d["key"], d["sassy_url"]
+        try:
+            with open(path, "rb") as f:
+                r = requests.put(url, data=f, headers={"Content-Type": "application/zip", "Content-Length": str(size)},
+                                 timeout=3600)
+            r.raise_for_status()
+            break
+        except requests.RequestException as e:
+            print(f"upload attempt {attempt + 1} failed: {type(e).__name__}", flush=True)
+            time.sleep(30 * (attempt + 1))
+    else:
+        sys.exit("upload failed")
     s.put(f"{BASE}/api/datasets/completed/{key}/").raise_for_status()
     comp = s.get(f"{BASE}/api/competitions/15/").json()
     tasks = [t["id"] if isinstance(t, dict) else t for p in comp["phases"] if p["id"] == phase for t in p.get("tasks", [])]

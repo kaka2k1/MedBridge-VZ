@@ -5,7 +5,7 @@
 
 ---
 
-## 0. TRẠNG THÁI MỚI NHẤT (04/10 ~19:45) – ĐỌC MỤC NÀY TRƯỚC
+## 0. TRẠNG THÁI MỚI NHẤT (06/10 ~20:10; xem khối "BÀI TỐT NHẤT" mới nhất bên dưới) – ĐỌC MỤC NÀY TRƯỚC
 
 **Bài tốt nhất: v10 = 0.2097** (`submissions/v10_dense_w2.zip`, ID 4362, w_dense=2.0; w=1 → 0.2022, w=4 → 0.2068 ⇒ tối ưu quanh w=2). Cấu trúc như v9 (ID 4360 = RRF của [BM25 top200 → GreenNode chunk rerank] và [GreenNode DENSE top300 trên toàn bộ 625k doc VI], w_dense=1.0, 120 doc + 80 chunk; doc trúng 21.7/câu). Dense là bước nhảy lớn nhất → tiếp tục khai thác dense (tăng w, dense chunk-level, thêm model dense khác như bge-m3/Qwen3-Embedding để ensemble). BTC BM25 Baseline: 0.3764.
 
@@ -64,6 +64,13 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 .venv/bin/python scripts/fuse_dense.py ... --w-dense <w tốt nhất> --n-docs 120 --n-chunks 80 --out submissions/v9_dense.zip   # rồi nộp
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
+
+**BÀI TỐT NHẤT (06/10 20:10): v26 = 0.2355** (`submissions/v26_newdocs.zip`, ID 4615; docs F2 .300, chunks F2 .171) = v23 + dense cấp đoạn bge-m3
+(Kaggle `kaggle_bgem3/`, w=1) + **index dense có thêm ~23k doc mới crawl** (doc-level `dense_gn_top300_v2.json` = encode lại 27 part + search;
+chunk-level `dense_chunks_top_v2.json` = `scripts/dense_chunks_add.py` chấm cửa sổ của doc mới rồi gộp vào kết quả Kaggle cũ):
+`fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300_v2.json --w-dense 2.0 --dense2 data/cache/kaggle_bgem3_out/dense_chunks_top.json --w-dense2 1.0 --dense3 data/cache/dense_chunks_top_v2.json --w-dense3 2.0 --adaptive 2.2 --chunk-ratio 0.9`
+v25 (= v26 nhưng index cũ) đang nộp để tách phần đóng góp của bge-m3 so với doc mới. Còn có thể làm: build lại BM25 + rerank GreenNode cho doc mới (vi_preds_300 / rr_gn_top200 vẫn chỉ corpus cũ).
+**Nộp không cần trình duyệt:** `.venv/bin/python scripts/submit_api.py <zip> --wait` (tự thử lại khi PUT lỗi SSL, tự đổi tên nếu trùng dataset; lưu details vào data/eval/).
 
 **BÀI TỐT NHẤT (06/10 08:00): v23 = 0.2324** (= v21 + chunk ratio 0.9; w-dense3=3 kém hơn: 0.2293). Trước đó: v21 = 0.2315 (`submissions/v21_dchunk_w2.zip`, ID 4504) – RRF 3 nguồn:
 BM25top200→GreenNode-chunk (w=1) ⊕ dense GreenNode doc-level (w=2) ⊕ **dense GreenNode CẤP ĐOẠN từ Kaggle** (`data/cache/kaggle_out/dense_chunks_top.json`, w=2),
