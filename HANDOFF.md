@@ -65,6 +65,19 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**BÀI TỐT NHẤT (06/10 23:40): v28 = 0.2671** (ID 4624; docs F2 .300, chunks F2 .234). Ba phát hiện lớn tối 06/10:
+1. **Chunk dài hơn = trúng nhiều hơn** (overlap chia cho độ dài GOLD, thể lệ không giới hạn độ dài chunk_text): `--chunk-chars 2400` nới mỗi chunk
+   thành đoạn nguyên văn liền mạch 2400 ký tự → chunks F2 .1785 → .2342. Đang thử 3600 (v29). Giới hạn upload **100MB**.
+2. **LTR** `scripts/ltr.py` (LightGBM, nhãn = chunk trúng; đặc trưng hạng/điểm mọi nguồn + domain prior + trùng tiêu đề + độ dài doc;
+   câu public dùng dự đoán OUT-OF-FOLD để điểm public trung thực). CV: P@10 .251 → .310. Chỉ tốt cho CHUNK (docs giảm .300→.294)
+   ⇒ dùng `--order data/cache/ltr_order_oof2.json --order-chunks-only` (doc vẫn theo RRF).
+3. **Nộp bài**: mạng local→BTC chỉ ~10–40KB/s (SSL EOF liên tục). `--lzma` (ZIP_LZMA, BTC đọc được, nhỏ hơn ~40%) +
+   `submit_api.py <zip> --relay --wait` (máy local xin presigned URL, Kaggle kernel `kaggle_relay/` PUT file lên với ~7–12MB/s).
+Lệnh v28:
+`fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300_v2.json --w-dense 2.0 --dense2 data/cache/kaggle_bgem3_out/dense_chunks_top.json --w-dense2 1.0 --dense3 data/cache/dense_chunks_top_v2.json --w-dense3 2.0 --adaptive 2.2 --chunk-ratio 0.9 --order data/cache/ltr_order_oof2.json --order-chunks-only --chunk-chars 2400 --lzma --out submissions/v28.zip`
+Đang chạy: dense cấp đoạn bằng GreenNode fine-tune trên nhãn (Kaggle `r2ai-dense-chunks` v3, kernel_sources r2ai-finetune-gn; held-out lần 1: AUC .693→.731),
+LLM giám khảo Qwen3-8B (`kaggle_llm/`, so với GreenNode AUC .787 trên 12k cặp).
+
 **BÀI TỐT NHẤT (06/10 20:10): v26 = 0.2355** (`submissions/v26_newdocs.zip`, ID 4615; docs F2 .300, chunks F2 .171) = v23 + dense cấp đoạn bge-m3
 (Kaggle `kaggle_bgem3/`, w=1) + **index dense có thêm ~23k doc mới crawl** (doc-level `dense_gn_top300_v2.json` = encode lại 27 part + search;
 chunk-level `dense_chunks_top_v2.json` = `scripts/dense_chunks_add.py` chấm cửa sổ của doc mới rồi gộp vào kết quả Kaggle cũ):

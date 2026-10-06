@@ -90,11 +90,13 @@ def main():
     ap.add_argument("--extra-chunks", type=int, default=0, help="K doc đầu mỗi câu thêm 1 đoạn thứ hai (khác đoạn đầu)")
     ap.add_argument("--chunk-chars", type=int, default=0, help=">0: nới mỗi chunk (nguyên văn, liền mạch) tới N ký tự")
     ap.add_argument("--order", default="", help="json {qid: [doc...]} từ scripts/ltr.py thay thứ tự RRF")
+    ap.add_argument("--order-chunks-only", action="store_true", help="--order chỉ dùng để chọn chunk; danh sách doc giữ RRF")
+    ap.add_argument("--lzma", action="store_true", help="nén ZIP_LZMA (nhỏ hơn ~40%%, BTC đọc được – v27)")
     a = ap.parse_args()
     L = fused_lists(a)
     if a.order:
         od = json.load(open(a.order))
-        L = {q: (od.get(str(q), v[0]), *v[1:]) for q, v in L.items()}
+        L = {q: (od.get(str(q), v[0]), *v[1:], v[0]) for q, v in L.items()}
     if a.eval_only:
         pos = known_pos()
         for n in (60, 120):
@@ -120,7 +122,8 @@ def main():
             nd[qid] = int(np.clip(round(a.adaptive * pred), 40, 200))
             nc[qid] = int(np.clip(round(nd[qid] * a.chunk_ratio), 30, a.chunk_max))
     res = []
-    for qid, (docs, ch, qtext, plan) in sorted(L.items()):
+    for qid, (docs, ch, qtext, plan, *rrf) in sorted(L.items()):
+        doc_list = rrf[0] if (rrf and a.order_chunks_only) else docs
         n_docs, n_chunks = nd.get(qid, a.n_docs), nc.get(qid, a.n_chunks)
         chunks = []
         for i, d in enumerate(docs[:n_chunks]):
@@ -138,11 +141,11 @@ def main():
                 c2 = next((x for x in sel if x != c and x[:200] not in (c or "") and (c or "")[:200] not in x), None)
                 if c2:
                     chunks.append({"doc_id": int(d), "chunk_text": c2})
-        res.append({"id": qid, "relevant_docs": [int(d) for d in docs[:n_docs]], "relevant_chunks": chunks})
+        res.append({"id": qid, "relevant_docs": [int(d) for d in doc_list[:n_docs]], "relevant_chunks": chunks})
     ids = set(pd.read_parquet("data/ViBioMIR/query.parquet").id.astype(int))
     res += [{"id": i, "relevant_docs": [], "relevant_chunks": []} for i in sorted(ids - {r["id"] for r in res})]
     res.sort(key=lambda e: e["id"])
-    with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    with zipfile.ZipFile(a.out, "w", zipfile.ZIP_LZMA) if a.lzma else zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         z.writestr("submission.json", json.dumps(res, ensure_ascii=False))
     print("wrote", a.out, len(res))
 
