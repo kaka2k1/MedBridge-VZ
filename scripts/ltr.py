@@ -62,6 +62,24 @@ def build(a):
             rows.append(dict(qid=int(qid), doc=d, rrf=rr, dom=dom, qlen=len(g.q.iloc[0]),
                              nsrc=sum(c in ft for c in ("gn_rank", "d1_rank", "d2_rank", "d3_rank")), **qf, **ft))
     X = pd.DataFrame(rows)
+    # đặc trưng từ vựng: trùng âm tiết câu hỏi–tiêu đề, độ dài doc
+    import pyarrow.compute as pc
+    import pyarrow.parquet as pq
+    need = set(X.doc); meta = {}
+    for f in sorted(glob.glob("data/docs/corpus-*.parquet")):
+        t = pq.read_table(f, columns=["doc_id", "title", "text"])
+        ids = [str(x) for x in t.column("doc_id").to_pylist()]
+        ln = pc.utf8_length(t.column("text")).to_pylist(); ti = t.column("title").to_pylist()
+        for d, a_, b_ in zip(ids, ti, ln):
+            if d in need and d not in meta:
+                meta[d] = (a_ or "", b_ or 0)
+        del t
+    tok = lambda s: set(s.lower().replace(",", " ").replace(".", " ").replace("?", " ").split())
+    qtok = {q: tok(t) for q, t in df.groupby("qid").q.first().items()}
+    X["doc_len"] = [meta.get(d, ("", 0))[1] for d in X.doc]
+    tt = [tok(meta.get(d, ("", 0))[0]) for d in X.doc]
+    X["title_ov"] = [len(t & qtok[q]) / (len(t) + 1) for t, q in zip(tt, X.qid)]
+    X["title_cov"] = [len(t & qtok[q]) / (len(qtok[q]) + 1) for t, q in zip(tt, X.qid)]
     for c in X.columns:
         if c.endswith("_rank"):
             X[c] = X[c].fillna(MISS)

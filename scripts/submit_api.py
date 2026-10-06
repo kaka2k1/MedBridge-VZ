@@ -38,6 +38,15 @@ def submit(s, path, phase):
             print("dataset create rejected:", str(d)[:300], flush=True)
             continue
         key, url = d["key"], d["sassy_url"]
+        t0 = time.time()
+        if os.environ.get("R2AI_CURL"):   # curl (TLS stack khác, tự retry ở tầng TCP tốt hơn)
+            import subprocess
+            rc = subprocess.run(["curl", "-sS", "-f", "-T", path, "-H", "Content-Type: application/zip", "-o", "/dev/null",
+                                 "-w", "%{http_code} %{speed_upload}", url], capture_output=True, text=True)
+            if rc.returncode == 0:
+                print("curl upload ok", rc.stdout, f"{time.time() - t0:.0f}s", flush=True); break
+            print(f"upload attempt {attempt + 1} failed after {time.time() - t0:.0f}s: curl {rc.returncode} {rc.stderr[:120]}", flush=True)
+            time.sleep(30 * (attempt + 1)); continue
         try:
             with open(path, "rb") as f:
                 r = requests.put(url, data=f, headers={"Content-Type": "application/zip", "Content-Length": str(size)},
@@ -45,10 +54,27 @@ def submit(s, path, phase):
             r.raise_for_status()
             break
         except requests.RequestException as e:
-            print(f"upload attempt {attempt + 1} failed: {type(e).__name__}", flush=True)
+            print(f"upload attempt {attempt + 1} failed after {time.time() - t0:.0f}s: {type(e).__name__}", flush=True)
             time.sleep(30 * (attempt + 1))
     else:
         sys.exit("upload failed")
+    s.put(f"{BASE}/api/datasets/completed/{key}/").raise_for_status()
+    comp = s.get(f"{BASE}/api/competitions/15/").json()
+    tasks = [t["id"] if isinstance(t, dict) else t for p in comp["phases"] if p["id"] == phase for t in p.get("tasks", [])]
+    r = s.post(f"{BASE}/api/submissions/", json={"data": key, "phase": phase, "tasks": tasks, "fact_sheet_answers": None})
+    r.raise_for_status()
+    return r.json()["id"]
+
+
+def prepare(s, path):
+    """Chỉ tạo dataset + lấy presigned URL (để máy khác PUT file lên – xem kaggle_relay/)."""
+    name = os.path.basename(path).replace(".zip", f"_{int(time.time())}.zip")
+    d = s.post(f"{BASE}/api/datasets/", json={"type": "submission", "request_sassy_file_name": name, "name": name,
+                                             "description": "", "is_public": False, "file_size": os.path.getsize(path)}).json()
+    return d["key"], d["sassy_url"]
+
+
+def finish(s, key, phase):
     s.put(f"{BASE}/api/datasets/completed/{key}/").raise_for_status()
     comp = s.get(f"{BASE}/api/competitions/15/").json()
     tasks = [t["id"] if isinstance(t, dict) else t for p in comp["phases"] if p["id"] == phase for t in p.get("tasks", [])]
@@ -76,9 +102,44 @@ def wait(s, sid, name):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("zip"); ap.add_argument("--phase", type=int, default=44); ap.add_argument("--wait", action="store_true")
+    ap.add_argument("--relay", action="store_true", help="tải lên qua Kaggle (kaggle_relay/) khi mạng tới BTC quá chậm")
     a = ap.parse_args()
     s = session()
-    sid = submit(s, a.zip, a.phase)
+    if a.relay:
+        import shutil, subprocess
+        key, url = prepare(s, a.zip)
+        rd = "data/cache/relay_ds"; shutil.rmtree(rd, ignore_errors=True); os.makedirs(rd)
+        shutil.copy(a.zip, f"{rd}/sub.bin"); open(f"{rd}/url.txt", "w").write(url)
+        json_meta = '{"title": "r2ai-submit-relay", "id": "kakaoffical/r2ai-submit-relay", "licenses": [{"name": "other"}]}'
+        open(f"{rd}/dataset-metadata.json", "w").write(json_meta)
+        kg = ".venv/bin/kaggle"
+        r = subprocess.run([kg, "datasets", "version", "-p", rd, "-m", "relay"], capture_output=True, text=True)
+        if "not found" in (r.stdout + r.stderr).lower() or r.returncode:
+            subprocess.run([kg, "datasets", "create", "-p", rd], check=True)
+        for _ in range(60):   # chờ dataset sẵn sàng
+            if "ready" in subprocess.run([kg, "datasets", "status", "kakaoffical/r2ai-submit-relay"], capture_output=True, text=True).stdout:
+                break
+            time.sleep(10)
+        for i in range(10):   # 409 Conflict khi dataset mới chưa sẵn sàng -> thử lại
+            if subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"]).returncode == 0:
+                break
+            time.sleep(30)
+        else:
+            sys.exit("kernel push failed")
+        time.sleep(30)
+        while True:
+            st = subprocess.run([kg, "kernels", "status", "kakaoffical/r2ai-relay-put"], capture_output=True, text=True).stdout
+            if "COMPLETE" in st or "ERROR" in st:
+                break
+            time.sleep(15)
+        subprocess.run([kg, "kernels", "output", "kakaoffical/r2ai-relay-put", "-p", "data/cache/relay_out"], capture_output=True)
+        res = open("data/cache/relay_out/put_result.txt").read() if os.path.exists("data/cache/relay_out/put_result.txt") else st
+        print("relay:", res.strip(), flush=True)
+        if not res.startswith("200"):
+            sys.exit("relay upload failed")
+        sid = finish(s, key, a.phase)
+    else:
+        sid = submit(s, a.zip, a.phase)
     print("submitted id", sid, flush=True)
     if a.wait:
         wait(s, sid, os.path.basename(a.zip).replace(".zip", ""))
