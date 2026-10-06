@@ -1,5 +1,7 @@
 """Kaggle GPU: fine-tune GreenNode-Embedding trên nhãn thật (chunk trúng/trượt từ các lần chấm), đánh giá trên 100 câu giữ riêng.
 Output: /kaggle/working/gn-ft (model) + ft_eval.json (AUC/P@10 base vs ft trên tập eval)."""
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"   # 1 GPU: tránh lỗi NCCL của DataParallel (lần 1 chết ở bước 146/147)
 import glob
 import json
 import random
@@ -32,7 +34,7 @@ def metrics(model, d):
 
 
 model = SentenceTransformer(BASE, model_kwargs={"torch_dtype": torch.float32})
-model.max_seq_length = 384
+model.max_seq_length = 256
 res = {"base": metrics(model, ev)}
 print("base", res["base"], flush=True)
 
@@ -50,9 +52,10 @@ train = Dataset.from_dict({"anchor": A, "positive": P, "negative": N}).shuffle(s
 print("triplets", len(train), flush=True)
 args = SentenceTransformerTrainingArguments(
     output_dir="/kaggle/working/ckpt", num_train_epochs=1, per_device_train_batch_size=64, learning_rate=1e-5,
-    warmup_ratio=0.1, fp16=True, batch_sampler=BatchSamplers.NO_DUPLICATES, logging_steps=20, save_strategy="no", report_to=[])
-loss = CachedMultipleNegativesRankingLoss(model, mini_batch_size=8)
+    warmup_ratio=0.1, fp16=True, batch_sampler=BatchSamplers.NO_DUPLICATES, logging_steps=20, save_strategy="steps", save_steps=50, save_total_limit=1, report_to=[])
+loss = CachedMultipleNegativesRankingLoss(model, mini_batch_size=16)
 SentenceTransformerTrainer(model=model, args=args, train_dataset=train, loss=loss).train()
+model.save("/kaggle/working/gn-ft")   # lưu ngay sau train, trước khi đánh giá
 res["ft"] = metrics(model, ev)
 print("ft", res["ft"], flush=True)
 json.dump(res, open("/kaggle/working/ft_eval.json", "w"))
