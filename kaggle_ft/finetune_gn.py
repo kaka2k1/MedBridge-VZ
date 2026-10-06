@@ -17,6 +17,9 @@ from sentence_transformers.training_args import BatchSamplers
 BASE = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
 df = pd.read_parquet(glob.glob("/kaggle/input/**/ft_pairs.parquet", recursive=True)[0])
 tr, ev = df[df.split == "train"], df[df.split == "eval"]
+FT_ALL = True   # lần 1 (500 train/100 eval): AUC .693->.731, P@10 .203->.221 -> giờ train trên tất cả câu có nhãn
+if FT_ALL:
+    tr = df
 
 
 def metrics(model, d):

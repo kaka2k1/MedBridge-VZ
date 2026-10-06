@@ -16,7 +16,8 @@ import torch
 
 DATA = os.environ.get("R2AI_DATA", "/kaggle/input")
 OUT = os.environ.get("R2AI_OUT", "/kaggle/working")
-MODEL = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
+_ft = glob.glob("/kaggle/input/**/gn-ft/config.json", recursive=True)   # model fine-tune (kernel_sources r2ai-finetune-gn)
+MODEL = os.path.dirname(_ft[0]) if _ft else "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
 MAX_W, TARGET, TOPK_W, TOPN_DOC = 6, 1600, 1500, 300
 
 

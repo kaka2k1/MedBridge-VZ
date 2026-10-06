@@ -60,6 +60,20 @@ def known_pos():
     return pos
 
 
+def expand(doc, c, n):
+    """Nới chunk c (nguyên văn trong doc) thành đoạn liền mạch dài ~n ký tự: ưu tiên mở về phía sau, phần thiếu mở về trước."""
+    p = doc.find(c)
+    if p < 0:
+        return c
+    end = min(len(doc), p + n)
+    st = max(0, end - n)
+    if st > 0:   # cắt ở ranh giới khoảng trắng để không cắt đôi âm tiết
+        sp = doc.rfind(" ", 0, st); st = sp + 1 if sp >= 0 and st - sp < 50 else st
+    if end < len(doc):
+        sp = doc.find(" ", end); end = sp if 0 <= sp < end + 50 else end
+    return doc[st:end]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True)
@@ -72,15 +86,23 @@ def main():
     ap.add_argument("--out"); ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--adaptive", type=float, default=0, help=">0: số doc/câu = hệ số × số gold dự đoán (40..200)")
     ap.add_argument("--chunk-ratio", type=float, default=0.67)
+    ap.add_argument("--chunk-max", type=int, default=130)
+    ap.add_argument("--extra-chunks", type=int, default=0, help="K doc đầu mỗi câu thêm 1 đoạn thứ hai (khác đoạn đầu)")
+    ap.add_argument("--chunk-chars", type=int, default=0, help=">0: nới mỗi chunk (nguyên văn, liền mạch) tới N ký tự")
+    ap.add_argument("--order", default="", help="json {qid: [doc...]} từ scripts/ltr.py thay thứ tự RRF")
     a = ap.parse_args()
     L = fused_lists(a)
+    if a.order:
+        od = json.load(open(a.order))
+        L = {q: (od.get(str(q), v[0]), *v[1:]) for q, v in L.items()}
     if a.eval_only:
         pos = known_pos()
         for n in (60, 120):
             print(f"w_dense={a.w_dense} known-pos in top{n}:",
                   round(sum(len(set(L[q][0][:n]) & pos.get(q, set())) for q in L) / len(pos), 3))
         return
-    need = {d for q, (docs, ch, *_ ) in L.items() for d in docs[:130] if d not in ch}
+    need = {d for q, (docs, ch, *_ ) in L.items() for i, d in enumerate(docs[:max(130, a.chunk_max)])
+            if d not in ch or i < a.extra_chunks or a.chunk_chars}
     texts = {}
     for f in sorted(glob.glob("data/docs/corpus-*.parquet")):
         t = pq.read_table(f, columns=["doc_id", "text"]).to_pandas()
@@ -96,18 +118,26 @@ def main():
             s50 = v[49][0] if len(v) > 49 else (v[-1][0] if v else 0)
             pred = np.quantile(ys, min(1.0, np.searchsorted(xs, s50) / len(xs)))
             nd[qid] = int(np.clip(round(a.adaptive * pred), 40, 200))
-            nc[qid] = int(np.clip(round(nd[qid] * a.chunk_ratio), 30, 130))
+            nc[qid] = int(np.clip(round(nd[qid] * a.chunk_ratio), 30, a.chunk_max))
     res = []
     for qid, (docs, ch, qtext, plan) in sorted(L.items()):
         n_docs, n_chunks = nd.get(qid, a.n_docs), nc.get(qid, a.n_chunks)
         chunks = []
-        for d in docs[:n_chunks]:
+        for i, d in enumerate(docs[:n_chunks]):
             c = ch.get(d)
+            sel = None
             if not c and d in texts:
                 sel = select_chunks(qtext, plan, texts[d], "vi", {"target_chars": 1600})
                 c = sel[0] if sel else ""
+            if c and a.chunk_chars and len(c) < a.chunk_chars and d in texts:
+                c = expand(texts[d], c, a.chunk_chars)
             if c:
                 chunks.append({"doc_id": int(d), "chunk_text": c})
+            if i < a.extra_chunks and d in texts:   # đoạn thứ hai: ứng viên tốt nhất không trùng đoạn đầu
+                sel = select_chunks(qtext, plan, texts[d], "vi", {"target_chars": 1600, "max_chunks": 3})
+                c2 = next((x for x in sel if x != c and x[:200] not in (c or "") and (c or "")[:200] not in x), None)
+                if c2:
+                    chunks.append({"doc_id": int(d), "chunk_text": c2})
         res.append({"id": qid, "relevant_docs": [int(d) for d in docs[:n_docs]], "relevant_chunks": chunks})
     ids = set(pd.read_parquet("data/ViBioMIR/query.parquet").id.astype(int))
     res += [{"id": i, "relevant_docs": [], "relevant_chunks": []} for i in sorted(ids - {r["id"] for r in res})]
