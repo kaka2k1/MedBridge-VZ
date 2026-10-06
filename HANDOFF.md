@@ -65,7 +65,7 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
-**BÀI TỐT NHẤT (06/10 04:00): v21 = 0.2315** (`submissions/v21_dchunk_w2.zip`, ID 4504) – RRF 3 nguồn:
+**BÀI TỐT NHẤT (06/10 08:00): v23 = 0.2324** (= v21 + chunk ratio 0.9; w-dense3=3 kém hơn: 0.2293). Trước đó: v21 = 0.2315 (`submissions/v21_dchunk_w2.zip`, ID 4504) – RRF 3 nguồn:
 BM25top200→GreenNode-chunk (w=1) ⊕ dense GreenNode doc-level (w=2) ⊕ **dense GreenNode CẤP ĐOẠN từ Kaggle** (`data/cache/kaggle_out/dense_chunks_top.json`, w=2),
 adaptive 2.2, chunk ratio 0.75; chunk cho doc không có từ BM25 = cửa sổ tốt nhất của dense cấp đoạn.
 `fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300.json --w-dense 2.0 --dense3 data/cache/kaggle_out/dense_chunks_top.json --w-dense3 2.0 --adaptive 2.2 --chunk-ratio 0.75`
