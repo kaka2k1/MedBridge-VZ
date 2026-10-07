@@ -65,6 +65,12 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**Colab 08/10 (GPU T4 free, điều khiển qua chrome-devtools trong Chrome của người dùng):** so sánh embedding trên 12k cặp có nhãn
+(`colab/eval_embed_colab.py`): GreenNode .786/.233, multilingual-e5-large-instruct .780/.225, Qwen3-Embedding-4B .756/.209, ghép GN+e5 .799/.236.
+e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` → v39. Chưa kịp thử `AITeamVN/Vietnamese_Embedding`, `jina-embeddings-v3`
+(`colab/eval_embed_colab2.py`) – runtime Colab bị ngắt (hết thời lượng free). Mẹo Colab: gõ phím vào ô bị mất ký tự đầu → đặt nội dung ô qua
+`window.monaco.editor.getModels()[i].setValue(...)`; nút "Tải lên bộ nhớ phiên" + upload_file để đưa file lên; tải kết quả về bằng `files.download`.
+
 **BÀI TỐT NHẤT (08/10 02:20): v39 = 0.3307** (= v38 + đặc trưng e5 trong LTR: `ltr.py --e5 data/cache/e5 --stages 2`; e5 mã hoá 222k ứng viên trên Colab bằng `colab/encode_e5.py`). Trước đó **v38 = 0.3256** (LTR8 + `--ef2 1.9 --ef2-range 30 280 --chunk-max 230`, ID 4762). Trước đó v36 = 0.3248 (ID 4759; docs .324 / chunks .326; v37 c=2.2 cũng 0.3248 ⇒ phẳng):
 1. **PRF** trong `scripts/ltr.py`: cos(doc, trọng tâm top-5/20 doc) bằng embedding GreenNode doc-level (`data/cache/dense_gn`) – đặc trưng mạnh nhất;
    `--stages 2` thêm PRF theo điểm LTR OOF vòng 1 (stage 3 không lợi). v35 = 0.3142.
