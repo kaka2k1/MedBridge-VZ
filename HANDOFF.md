@@ -65,7 +65,7 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
-**BÀI TỐT NHẤT (07/10 22:40): v38 = 0.3256** (LTR8 + `--ef2 1.9 --ef2-range 30 280 --chunk-max 230`, ID 4762). Trước đó v36 = 0.3248 (ID 4759; docs .324 / chunks .326; v37 c=2.2 cũng 0.3248 ⇒ phẳng):
+**BÀI TỐT NHẤT (08/10 02:20): v39 = 0.3307** (= v38 + đặc trưng e5 trong LTR: `ltr.py --e5 data/cache/e5 --stages 2`; e5 mã hoá 222k ứng viên trên Colab bằng `colab/encode_e5.py`). Trước đó **v38 = 0.3256** (LTR8 + `--ef2 1.9 --ef2-range 30 280 --chunk-max 230`, ID 4762). Trước đó v36 = 0.3248 (ID 4759; docs .324 / chunks .326; v37 c=2.2 cũng 0.3248 ⇒ phẳng):
 1. **PRF** trong `scripts/ltr.py`: cos(doc, trọng tâm top-5/20 doc) bằng embedding GreenNode doc-level (`data/cache/dense_gn`) – đặc trưng mạnh nhất;
    `--stages 2` thêm PRF theo điểm LTR OOF vòng 1 (stage 3 không lợi). v35 = 0.3142.
 2. **Cắt ngưỡng F2 kỳ vọng** (`fuse_dense.py --ef2 1.7 --ef2-range 30 250`, đọc `<order>_probs.json`): n_doc/câu = argmax 5·S(n)/(4·c·Σp + n);
