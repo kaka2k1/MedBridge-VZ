@@ -170,6 +170,8 @@ def main():
     out = {int(q): g.sort_values("ltr", ascending=False).doc.tolist() for q, g in X.groupby("qid")}
     psum = {int(q): [float(g.ltr.sum()), float(g.ltr.nlargest(50).sum()), float(g.ltr.nlargest(200).sum())] for q, g in X.groupby("qid")}
     json.dump(psum, open(a.out.replace(".json", "_psum.json"), "w"))
+    json.dump({int(q): g.ltr.sort_values(ascending=False).head(400).round(5).tolist() for q, g in X.groupby("qid")},
+              open(a.out.replace(".json", "_probs.json"), "w"))   # xác suất đã sắp xếp (khớp thứ tự trong --out) cho cắt ngưỡng F2
     json.dump(out, open(a.out, "w")); print("wrote", a.out, len(out))
 
 
