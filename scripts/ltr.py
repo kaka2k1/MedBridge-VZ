@@ -105,6 +105,12 @@ def build(a):
         X["e5_rank"] = X.groupby("qid").e5_s.rank(ascending=False)
         X["e5_gap"] = X.groupby("qid").e5_s.transform("max") - X.e5_s
         add_prf(X, e5, "e5_s", "e5prf")
+    if a.rr:   # cross-encoder bge-reranker-v2-m3 trên top-120/câu (colab/rerank_bge.py); ngoài top-120 = thiếu
+        R = pd.read_parquet(a.rr); R["doc_id"] = R.doc_id.astype(str)
+        rs = dict(zip(zip(R.qid, R.doc_id), R.s))
+        X["ce_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
+        X["ce_rank"] = X.groupby("qid").ce_s.rank(ascending=False).fillna(MISS)
+        X["ce_gap"] = X.groupby("qid").ce_s.transform("max") - X.ce_s
     tok = lambda s: set(s.lower().replace(",", " ").replace(".", " ").replace("?", " ").split())
     qtok = {q: tok(t) for q, t in df.groupby("qid").q.first().items()}
     X["doc_len"] = [meta.get(d, ("", 0))[1] for d in X.doc]
@@ -133,6 +139,7 @@ def main():
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True); ap.add_argument("--top", type=int, default=200)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--rr", default="", help="parquet (qid, doc_id, s) điểm cross-encoder")
     ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
