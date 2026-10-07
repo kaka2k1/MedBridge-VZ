@@ -36,3 +36,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-07 07:10,v32_ltr3_all.zip (4647),v31 config but docs+chunks ordered by LTR3 (retrained incl. v31 labels; OOF public),0.2068,0.4007,0.1934,0.4181,0.3086
 2026-10-07 19:30,v33_cr15 (4748),FAILED: relay kernel used stale dataset version (old url) -> nothing uploaded to new key,,,,,
 2026-10-07 20:10,v33_cr15 (4750),v32 + chunk-ratio 1.5 chunk-max 260 (LTR4; relay recompress 1GB dict -> 89MB): more chunks hurt precision,0.2069,0.4022,0.1651,0.4484,0.3061
+2026-10-07 20:40,v34_a26.zip (4753),LTR4 docs+chunks; adaptive 2.6; chunk-ratio 1.015 max 200 (same chunk count as v32),0.1984,0.4116,0.1963,0.4177,0.3093

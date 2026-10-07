@@ -24,6 +24,20 @@ from rerank_vi import load_preds, pairs  # noqa: E402
 MISS = 1000
 
 
+def add_prf(X, emb, col, pre):
+    """cos(doc, trọng tâm top-k doc theo cột col) – cùng chủ đề với nhóm đầu ⇒ dễ là gold."""
+    for k in (5, 20):
+        X[f"{pre}{k}"] = 0.0
+    for q, g in X.groupby("qid"):
+        top = g.sort_values(col, ascending=False).doc.tolist()
+        V = np.stack([emb[d] if d in emb else np.zeros(1024, np.float32) for d in g.doc])
+        for k in (5, 20):
+            c = [emb[d] for d in top[:k] if d in emb]
+            if c:
+                c = np.mean(c, 0); c /= np.linalg.norm(c) + 1e-9
+                X.loc[g.index, f"{pre}{k}"] = V @ c
+
+
 def labels():
     pos, seen = collections.defaultdict(set), collections.defaultdict(set)
     for f in glob.glob("data/eval/details_*.jsonl"):
@@ -74,6 +88,15 @@ def build(a):
             if d in need and d not in meta:
                 meta[d] = (a_ or "", b_ or 0)
         del t
+    # PRF: cos(doc, trọng tâm top-k doc theo RRF) bằng embedding GreenNode doc-level đã có (data/cache/dense_gn)
+    emb = {}
+    for f in sorted(glob.glob("data/cache/dense_gn/part*.npy")):
+        ids = json.load(open(f.replace(".npy", ".ids.json")))
+        idx = [i for i, d in enumerate(ids) if d in need]
+        if idx:
+            E = np.load(f, mmap_mode="r")[idx].astype(np.float32)
+            emb.update({ids[i]: E[j] for j, i in enumerate(idx)})
+    add_prf(X, emb, "rrf", "prf")
     tok = lambda s: set(s.lower().replace(",", " ").replace(".", " ").replace("?", " ").split())
     qtok = {q: tok(t) for q, t in df.groupby("qid").q.first().items()}
     X["doc_len"] = [meta.get(d, ("", 0))[1] for d in X.doc]
@@ -83,7 +106,7 @@ def build(a):
     for c in X.columns:
         if c.endswith("_rank"):
             X[c] = X[c].fillna(MISS)
-    return X
+    return X, emb
 
 
 def metrics(X, col):
@@ -102,8 +125,9 @@ def main():
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True); ap.add_argument("--top", type=int, default=200)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
-    X = build(a)
+    X, emb = build(a)
     pos, seen = labels()
     # tiên nghiệm tên miền: tính trong từng fold (chỉ từ câu train) để tránh rò rỉ
     X["lab"] = [d in seen.get(q, ()) for q, d in zip(X.qid, X.doc)]
@@ -117,20 +141,30 @@ def main():
         return ((t["sum"] + 0.08 * 50) / (t["count"] + 50)).to_dict()
 
     qs = np.array(sorted(X[X.lab].qid.unique())); rng = np.random.default_rng(0); rng.shuffle(qs)
-    folds = np.array_split(qs, 5); cv = []
-    for k in range(5):
-        te = X.qid.isin(folds[k]) & X.lab; tr = ~X.qid.isin(folds[k]) & X.lab
-        dr = dom_rate(X[tr]); Xk = X.assign(dom_rate=X.dom.map(dr).fillna(0.08))
-        m = lgb.train(params, lgb.Dataset(Xk.loc[tr, feats], Xk.loc[tr, "y"]), a.rounds)
-        allq = X.qid.isin(folds[k])   # dự đoán out-of-fold cho MỌI ứng viên của câu trong fold (điểm public trung thực)
-        cv.append(Xk[allq].assign(ltr=m.predict(Xk.loc[allq, feats])))
-    cv = pd.concat(cv)
-    print("RRF", metrics(cv[cv.lab], "rrf")); print("LTR", metrics(cv[cv.lab], "ltr"))
-    dr = dom_rate(X[X.lab]); X["dom_rate"] = X.dom.map(dr).fillna(0.08)
-    m = lgb.train(params, lgb.Dataset(X.loc[X.lab, feats], X.loc[X.lab, "y"]), a.rounds)
-    X["ltr"] = m.predict(X[feats])
-    oof = cv.set_index(["qid", "doc"]).ltr
-    X["ltr"] = [oof.get((q, d), v) for q, d, v in zip(X.qid, X.doc, X.ltr)]   # câu có nhãn: dùng điểm OOF
+    folds = np.array_split(qs, 5)
+
+    def fit(X, feats):
+        cv = []
+        for k in range(5):
+            te = X.qid.isin(folds[k]) & X.lab; tr = ~X.qid.isin(folds[k]) & X.lab
+            dr = dom_rate(X[tr]); Xk = X.assign(dom_rate=X.dom.map(dr).fillna(0.08))
+            m = lgb.train(params, lgb.Dataset(Xk.loc[tr, feats], Xk.loc[tr, "y"]), a.rounds)
+            allq = X.qid.isin(folds[k])   # dự đoán out-of-fold cho MỌI ứng viên của câu trong fold (điểm public trung thực)
+            cv.append(Xk[allq].assign(ltr=m.predict(Xk.loc[allq, feats])))
+        cv = pd.concat(cv)
+        print("RRF", metrics(cv[cv.lab], "rrf")); print("LTR", metrics(cv[cv.lab], "ltr"), flush=True)
+        dr = dom_rate(X[X.lab]); X["dom_rate"] = X.dom.map(dr).fillna(0.08)
+        m = lgb.train(params, lgb.Dataset(X.loc[X.lab, feats], X.loc[X.lab, "y"]), a.rounds)
+        X["ltr"] = m.predict(X[feats])
+        oof = cv.set_index(["qid", "doc"]).ltr
+        X["ltr"] = [oof.get((q, d), v) for q, d, v in zip(X.qid, X.doc, X.ltr)]   # câu có nhãn: dùng điểm OOF
+        return m
+
+    m = fit(X, feats)
+    for st in range(a.stages - 1):   # PRF lặp: trọng tâm theo điểm LTR của vòng trước (OOF ⇒ không rò nhãn)
+        add_prf(X, emb, "ltr", f"prfL{st}_")
+        feats = feats + [f"prfL{st}_5", f"prfL{st}_20"]
+        m = fit(X, feats)
     imp = sorted(zip(m.feature_importance("gain"), feats), reverse=True)[:12]
     print("importance", [(f, int(v)) for v, f in imp])
     out = {int(q): g.sort_values("ltr", ascending=False).doc.tolist() for q, g in X.groupby("qid")}
