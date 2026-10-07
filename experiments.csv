@@ -38,3 +38,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-07 20:10,v33_cr15 (4750),v32 + chunk-ratio 1.5 chunk-max 260 (LTR4; relay recompress 1GB dict -> 89MB): more chunks hurt precision,0.2069,0.4022,0.1651,0.4484,0.3061
 2026-10-07 20:40,v34_a26.zip (4753),LTR4 docs+chunks; adaptive 2.6; chunk-ratio 1.015 max 200 (same chunk count as v32),0.1984,0.4116,0.1963,0.4177,0.3093
 2026-10-07 21:20,v35_ltr6_prf.zip (4758),v34 config with LTR6 (PRF centroid features + 2-stage PRF on OOF LTR),0.2016,0.4187,0.1991,0.4241,0.3142
+2026-10-07 22:00,v36_ef2.zip (4759),LTR7 order + expected-F2 per-query cutoff (G=1.7*sum p; n in [30;250]); chunks=docs count,0.2264,0.4098,0.2291,0.4109,0.3248

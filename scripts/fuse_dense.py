@@ -91,6 +91,8 @@ def main():
     ap.add_argument("--chunk-chars", type=int, default=0, help=">0: nới mỗi chunk (nguyên văn, liền mạch) tới N ký tự")
     ap.add_argument("--order", default="", help="json {qid: [doc...]} từ scripts/ltr.py thay thứ tự RRF")
     ap.add_argument("--order-chunks-only", action="store_true", help="--order chỉ dùng để chọn chunk; danh sách doc giữ RRF")
+    ap.add_argument("--ef2", type=float, default=0, help=">0: số doc/câu = argmax F2 kỳ vọng từ xác suất LTR (<order>_probs.json), G = hệ số × Σp")
+    ap.add_argument("--ef2-range", type=int, nargs=2, default=[30, 250])
     ap.add_argument("--dump", default="", help="ghi <dump>_rrf.json (thứ tự doc RRF top300) + <dump>_ndocs.json")
     ap.add_argument("--lzma", action="store_true", help="nén ZIP_LZMA (nhỏ hơn ~40%%, BTC đọc được – v27)")
     a = ap.parse_args()
@@ -127,6 +129,15 @@ def main():
         json.dump({str(q): nd.get(q, a.n_docs) for q in L}, open(a.dump + "_ndocs.json", "w"))
         if not a.out:
             return
+    if a.ef2:
+        pr = json.load(open(a.order.replace(".json", "_probs.json")))
+        for qid in L:
+            p = np.array(pr.get(str(qid), [])) if str(qid) in pr else None
+            if p is None or not len(p):
+                continue
+            n = np.arange(1, len(p) + 1)
+            nd[qid] = int(np.clip(np.argmax(5 * np.cumsum(p) / (4 * a.ef2 * p.sum() + n)) + 1, *a.ef2_range))
+            nc[qid] = int(np.clip(round(nd[qid] * a.chunk_ratio), 30, a.chunk_max))
     res = []
     for qid, (docs, ch, qtext, plan, *rrf) in sorted(L.items()):
         doc_list = rrf[0] if (rrf and a.order_chunks_only) else docs
