@@ -70,7 +70,8 @@ def prepare(s, path):
     """Chỉ tạo dataset + lấy presigned URL (để máy khác PUT file lên – xem kaggle_relay/)."""
     name = os.path.basename(path).replace(".zip", f"_{int(time.time())}.zip")
     d = s.post(f"{BASE}/api/datasets/", json={"type": "submission", "request_sassy_file_name": name, "name": name,
-                                             "description": "", "is_public": False, "file_size": os.path.getsize(path)}).json()
+                                             "description": "", "is_public": False,
+                                             "file_size": int(os.environ.get("R2AI_DECLARE_SIZE", os.path.getsize(path)))}).json()
     return d["key"], d["sassy_url"]
 
 
@@ -115,17 +116,21 @@ if __name__ == "__main__":
         import shutil, subprocess
         key, url = prepare(s, a.zip)
         rd = "data/cache/relay_ds"; shutil.rmtree(rd, ignore_errors=True); os.makedirs(rd)
-        shutil.copy(a.zip, f"{rd}/sub.bin"); open(f"{rd}/url.txt", "w").write(url)
+        tag = f"sub_{int(time.time())}.bin"; shutil.copy(a.zip, f"{rd}/{tag}"); open(f"{rd}/url.txt", "w").write(url)
         json_meta = '{"title": "r2ai-submit-relay", "id": "kakaoffical/r2ai-submit-relay", "licenses": [{"name": "other"}]}'
         open(f"{rd}/dataset-metadata.json", "w").write(json_meta)
         kg = ".venv/bin/kaggle"
         r = subprocess.run([kg, "datasets", "version", "-p", rd, "-m", "relay"], capture_output=True, text=True)
         if "not found" in (r.stdout + r.stderr).lower() or r.returncode:
             subprocess.run([kg, "datasets", "create", "-p", rd], check=True)
-        for _ in range(60):   # chờ dataset sẵn sàng
-            if "ready" in subprocess.run([kg, "datasets", "status", "kakaoffical/r2ai-submit-relay"], capture_output=True, text=True).stdout:
+        want = str(os.path.getsize(a.zip))
+        for _ in range(180):   # chờ PHIÊN BẢN MỚI: sub.bin đúng dung lượng (status "ready" của bản cũ không đủ – v33 lần 1 bị Failed vì vậy)
+            fl = subprocess.run([kg, "datasets", "files", "kakaoffical/r2ai-submit-relay"], capture_output=True, text=True).stdout
+            if any(l.split()[:2] == [tag, want] for l in fl.splitlines()):
                 break
-            time.sleep(10)
+            time.sleep(20)
+        else:
+            sys.exit("relay dataset not updated")
         for i in range(10):   # 409 Conflict khi dataset mới chưa sẵn sàng -> thử lại
             if subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"]).returncode == 0:
                 break
@@ -138,6 +143,7 @@ if __name__ == "__main__":
             if "COMPLETE" in st or "ERROR" in st:
                 break
             time.sleep(15)
+        shutil.rmtree("data/cache/relay_out", ignore_errors=True)   # tránh đọc put_result.txt cũ
         subprocess.run([kg, "kernels", "output", "kakaoffical/r2ai-relay-put", "-p", "data/cache/relay_out"], capture_output=True)
         res = open("data/cache/relay_out/put_result.txt").read() if os.path.exists("data/cache/relay_out/put_result.txt") else st
         print("relay:", res.strip(), flush=True)
