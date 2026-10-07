@@ -85,8 +85,11 @@ def finish(s, key, phase):
 
 def wait(s, sid, name):
     while True:
-        j = s.get(f"{BASE}/api/submissions/?phase__competition=15").json()
-        st = next(x for x in (j.get("results") or j) if x["id"] == sid)["status"]
+        try:
+            j = s.get(f"{BASE}/api/submissions/?phase__competition=15", timeout=120).json()
+            st = next(x for x in (j.get("results") or j) if x["id"] == sid)["status"]
+        except (requests.RequestException, ValueError, StopIteration) as e:   # mạng chập chờn -> thử lại
+            print("poll error", type(e).__name__, flush=True); time.sleep(30); continue
         if st in ("Finished", "Failed", "Cancelled"):
             break
         time.sleep(20)
@@ -102,9 +105,12 @@ def wait(s, sid, name):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("zip"); ap.add_argument("--phase", type=int, default=44); ap.add_argument("--wait", action="store_true")
+    ap.add_argument("--fetch", type=int, default=0, help="chỉ chờ + tải kết quả của submission id đã nộp")
     ap.add_argument("--relay", action="store_true", help="tải lên qua Kaggle (kaggle_relay/) khi mạng tới BTC quá chậm")
     a = ap.parse_args()
     s = session()
+    if a.fetch:
+        wait(s, a.fetch, os.path.basename(a.zip).replace(".zip", "")); sys.exit()
     if a.relay:
         import shutil, subprocess
         key, url = prepare(s, a.zip)

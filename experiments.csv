@@ -33,3 +33,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-06 23:55,v29_c3600.zip (4625),v28 with chunk 3600 chars,0.2006,0.3922,0.2085,0.3111,0.2791
 2026-10-07 00:10,v30_c5000.zip (4628),v28 with chunk 5000 chars (86.5MB lzma),0.2006,0.3922,0.2200,0.3380,0.2892
 2026-10-07 00:45,v31_c8000_cr12.zip (4633),v30 with chunk 8000 chars + chunk-ratio 1.2 + chunk-max 200 (146 chunks/q); LZMA preset9e dict512MB (74.6MB),0.2006,0.3922,0.1849,0.4005,0.2980
+2026-10-07 07:10,v32_ltr3_all.zip (4647),v31 config but docs+chunks ordered by LTR3 (retrained incl. v31 labels; OOF public),0.2068,0.4007,0.1934,0.4181,0.3086

@@ -65,6 +65,14 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**BÀI TỐT NHẤT (07/10 07:10): v32 = 0.3086** (ID 4647; docs .308 / chunks .309) = v31 nhưng DOC + CHUNK đều theo LTR3
+(`--order data/cache/ltr_order_oof3.json`, không `--order-chunks-only`): nhãn từ v31 (chunk ~ cả bài) gần như = nhãn doc ⇒ LTR giờ tốt cho cả doc.
+LTR4 (thêm nhãn v32) ≈ LTR3 → vòng lặp nhãn đã bão hoà. Đã từng tìm ra 43.5% số gold doc; top200 LTR phủ .41 ⇒ tăng pool không giúp.
+Hit-rate chunk ở hạng 180–200 vẫn 8% (> ngưỡng F2 ≈ F/5 ≈ 6%) ⇒ thêm chunk vẫn lợi, giới hạn bởi 100MB:
+`scripts/zip_lzma.py` (env R2AI_LZMA_DICT_MB, >512 dùng mf HC4 ~7.5×dict RAM).
+**Kaggle GPU hết quota tuần (30h) ngày 07/10** → Colab / Kaggle TPU. Qwen3-8B giám khảo AUC .660 (kém). GreenNode fine-tune dense
+(`data/cache/kaggle_ftdense_out/dense_chunks_top.json`) CHƯA dùng: model học nhãn của chính câu public ⇒ điểm public bị thổi phồng, khó đánh giá trung thực.
+
 **BÀI TỐT NHẤT (07/10 00:45): v31 = 0.2980** (ID 4633; `--chunk-chars 8000 --chunk-ratio 1.2 --chunk-max 200 --lzma`, LZMA từ điển 512MB qua `scripts/zip_lzma.py` nén 530MB JSON còn ~50–75MB; chunks F2 .296). Trước đó v30 c5000 = 0.2892, v29 c3600 = 0.2791.
 **v28 = 0.2671** (ID 4624; docs F2 .300, chunks F2 .234). Ba phát hiện lớn tối 06/10:
 1. **Chunk dài hơn = trúng nhiều hơn** (overlap chia cho độ dài GOLD, thể lệ không giới hạn độ dài chunk_text): `--chunk-chars 2400` nới mỗi chunk
