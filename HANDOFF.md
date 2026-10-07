@@ -363,3 +363,11 @@ agy -p "Đọc HANDOFF.md rồi thực hiện mục 6.1: tạo các bài v3, ghi
 ## 8. Bảo mật
 - **Không commit** `.r2ai_cred`, `logs/` (log agent có thể chứa mật khẩu), `test_login*.py`.
 - Mật khẩu tài khoản thi đã lộ trong lịch sử chat → nên đổi.
+
+**DỪNG 07/10 ~08:00 (người dùng hết quota Claude).** Việc dở / tiếp theo:
+1. v33 = v32 + nhiều chunk hơn: JSON thô đã build ở scratchpad (có thể mất) → build lại:
+   `fuse_dense.py ... --adaptive 2.2 --chunk-ratio 1.5 --chunk-max 260 --order data/cache/ltr_order_oof4.json --chunk-chars 8000 --out /tmp/v33_deflate.zip`
+   rồi `R2AI_LZMA_DICT_MB=1024 python scripts/zip_lzma.py /tmp/v33_deflate.zip submissions/v33_cr15.zip` (cần ~8GB RAM trống; phải < 100MB) → `submit_api.py submissions/v33_cr15.zip --relay --wait`.
+2. Thử docs nhiều hơn với LTR: `--adaptive 2.6`.
+3. Kaggle GPU hết quota tới tuần sau → Colab / Kaggle TPU cho model lớn.
+Hôm nay (UTC 07/10) đã nộp 1/10 (v32).
