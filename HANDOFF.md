@@ -65,6 +65,17 @@ for w in 0.5 1.0 2.0; do .venv/bin/python scripts/fuse_dense.py --preds data/cac
 ```
 Lưu ý: "doc đúng-đã-biết" lấy từ các lần nộp trước (thiên về BM25) → dense có thể tốt hơn con số offline cho thấy; nên nộp ít nhất 1 bài w=1.0.
 
+**BÀI TỐT NHẤT (07/10 22:00): v36 = 0.3248** (ID 4759; docs .324 / chunks .326; v37 c=2.2 cũng 0.3248 ⇒ phẳng):
+1. **PRF** trong `scripts/ltr.py`: cos(doc, trọng tâm top-5/20 doc) bằng embedding GreenNode doc-level (`data/cache/dense_gn`) – đặc trưng mạnh nhất;
+   `--stages 2` thêm PRF theo điểm LTR OOF vòng 1 (stage 3 không lợi). v35 = 0.3142.
+2. **Cắt ngưỡng F2 kỳ vọng** (`fuse_dense.py --ef2 1.7 --ef2-range 30 250`, đọc `<order>_probs.json`): n_doc/câu = argmax 5·S(n)/(4·c·Σp + n);
+   chunk = cùng số (`--chunk-ratio 1.0`). +0.011 so với adaptive.
+Lệnh v36:
+`ltr.py ... --stages 2 --out data/cache/ltr_order_oofN.json` rồi
+`fuse_dense.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense data/cache/dense_gn_top300_v2.json --w-dense 2.0 --dense2 data/cache/kaggle_bgem3_out/dense_chunks_top.json --w-dense2 1.0 --dense3 data/cache/dense_chunks_top_v2.json --w-dense3 2.0 --adaptive 2.6 --ef2 1.7 --chunk-ratio 1.0 --chunk-max 200 --order data/cache/ltr_order_oofN.json --chunk-chars 8000 --lzma --out submissions/vX.zip`
+rồi `submit_api.py submissions/vX.zip --relay --wait` (zip thô >100MB: relay nén lại trên Kaggle, đặt `R2AI_DECLARE_SIZE=95000000`).
+Không giúp: thêm chunk (v33 tỉ lệ 1.5 = 0.3061), Qwen3-8B giám khảo, LTR stage 3, hồi quy số gold (+.002 offline).
+
 **BÀI TỐT NHẤT (07/10 07:10): v32 = 0.3086** (ID 4647; docs .308 / chunks .309) = v31 nhưng DOC + CHUNK đều theo LTR3
 (`--order data/cache/ltr_order_oof3.json`, không `--order-chunks-only`): nhãn từ v31 (chunk ~ cả bài) gần như = nhãn doc ⇒ LTR giờ tốt cho cả doc.
 LTR4 (thêm nhãn v32) ≈ LTR3 → vòng lặp nhãn đã bão hoà. Đã từng tìm ra 43.5% số gold doc; top200 LTR phủ .41 ⇒ tăng pool không giúp.
