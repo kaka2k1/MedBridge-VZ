@@ -97,6 +97,14 @@ def build(a):
             E = np.load(f, mmap_mode="r")[idx].astype(np.float32)
             emb.update({ids[i]: E[j] for j, i in enumerate(idx)})
     add_prf(X, emb, "rrf", "prf")
+    if a.e5:   # model thứ 2 (multilingual-e5-large-instruct, mã hoá trên Colab: colab/encode_e5.py) – bổ sung GreenNode (AUC ghép .799)
+        ids = json.load(open(f"{a.e5}/e5_ids.json")); E = np.load(f"{a.e5}/e5_docs.npy")
+        e5 = {d: E[i].astype(np.float32) for i, d in enumerate(ids)}
+        QE = dict(zip(json.load(open(f"{a.e5}/e5_qids.json")), np.load(f"{a.e5}/e5_queries.npy").astype(np.float32)))
+        X["e5_s"] = [float(e5[d] @ QE[q]) if d in e5 else 0.0 for q, d in zip(X.qid, X.doc)]
+        X["e5_rank"] = X.groupby("qid").e5_s.rank(ascending=False)
+        X["e5_gap"] = X.groupby("qid").e5_s.transform("max") - X.e5_s
+        add_prf(X, e5, "e5_s", "e5prf")
     tok = lambda s: set(s.lower().replace(",", " ").replace(".", " ").replace("?", " ").split())
     qtok = {q: tok(t) for q, t in df.groupby("qid").q.first().items()}
     X["doc_len"] = [meta.get(d, ("", 0))[1] for d in X.doc]
@@ -125,6 +133,7 @@ def main():
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True); ap.add_argument("--top", type=int, default=200)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
     X, emb = build(a)
