@@ -40,3 +40,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-07 21:20,v35_ltr6_prf.zip (4758),v34 config with LTR6 (PRF centroid features + 2-stage PRF on OOF LTR),0.2016,0.4187,0.1991,0.4241,0.3142
 2026-10-07 22:00,v36_ef2.zip (4759),LTR7 order + expected-F2 per-query cutoff (G=1.7*sum p; n in [30;250]); chunks=docs count,0.2264,0.4098,0.2291,0.4109,0.3248
 2026-10-07 22:30,v37_ef2c22.zip (4761),v36 with EF2 c=2.2 range [30;300] chunk-max 250 (flat vs c=1.7),0.2109,0.4249,0.2116,0.4278,0.3248
+2026-10-07 22:40,v38_ltr8_ef19.zip (4762),LTR8 (2-stage PRF; labels incl. v36/v37) + EF2 c=1.9 range [30;280] chunk-max 230,0.2200,0.4180,0.2211,0.4205,0.3256
