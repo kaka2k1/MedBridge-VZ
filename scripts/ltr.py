@@ -111,6 +111,12 @@ def build(a):
         X["ce_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
         X["ce_rank"] = X.groupby("qid").ce_s.rank(ascending=False).fillna(MISS)
         X["ce_gap"] = X.groupby("qid").ce_s.transform("max") - X.ce_s
+    if a.rr3:   # cross-encoder đã fine-tune trên nhãn theo fold (colab/ft_ce.py; câu public = OOF)
+        R = pd.read_parquet(a.rr3); R["doc_id"] = R.doc_id.astype(str)
+        rs = dict(zip(zip(R.qid, R.doc_id), R.s))
+        X["ceft_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
+        X["ceft_rank"] = X.groupby("qid").ceft_s.rank(ascending=False).fillna(MISS)
+        X["ceft_gap"] = X.groupby("qid").ceft_s.transform("max") - X.ceft_s
     if a.rr2:   # cross-encoder trên cửa sổ dense tốt nhất của doc (colab/rerank_win.py)
         R = pd.read_parquet(a.rr2); R["doc_id"] = R.doc_id.astype(str)
         rs = dict(zip(zip(R.qid, R.doc_id), R.s))
@@ -146,6 +152,7 @@ def main():
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True); ap.add_argument("--top", type=int, default=200)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--rr3", default="", help="parquet (qid, doc_id, s) cross-encoder fine-tune theo fold")
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
     ap.add_argument("--rr", default="", help="parquet (qid, doc_id, s) điểm cross-encoder")
     ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
