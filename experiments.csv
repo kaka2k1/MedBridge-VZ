@@ -43,3 +43,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-07 22:40,v38_ltr8_ef19.zip (4762),LTR8 (2-stage PRF; labels incl. v36/v37) + EF2 c=1.9 range [30;280] chunk-max 230,0.2200,0.4180,0.2211,0.4205,0.3256
 2026-10-08 02:20,v39_e5.zip (4775),v38 config + LTR9 with multilingual-e5-large-instruct features (e5_s/rank/gap + e5 PRF; Colab-encoded 222k candidates),0.2205,0.4265,0.2220,0.4274,0.3307
 2026-10-08 19:10,v40_ce (4883),v39 + LTR10 with bge-reranker-v2-m3 cross-encoder features (top-120/q; Colab),0.2254,0.4275,0.2272,0.4284,0.3347
+2026-10-08 20:30,v41_ce200 (ID see logs),v40 + cross-encoder extended to ranks 121-200 (LTR11): no gain,0.2236,0.4280,0.2251,0.4292,0.3345
