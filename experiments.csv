@@ -45,3 +45,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-08 19:10,v40_ce (4883),v39 + LTR10 with bge-reranker-v2-m3 cross-encoder features (top-120/q; Colab),0.2254,0.4275,0.2272,0.4284,0.3347
 2026-10-08 20:30,v41_ce200 (ID see logs),v40 + cross-encoder extended to ranks 121-200 (LTR11): no gain,0.2236,0.4280,0.2251,0.4292,0.3345
 2026-10-08 22:30,v42_cewin (4889),v40 + window cross-encoder (CE on best dense window; ce2/ce_max) LTR12,0.2239,0.4276,0.2253,0.4291,0.3352
+2026-10-09 22:45,v43h_hyde,v42 + HyDE (Qwen3-4B-Instruct-2507 pseudo-docs; GreenNode search hyde+mix as LTR sources d4/d5),0.2234,0.4286,0.2247,0.4298,0.3356

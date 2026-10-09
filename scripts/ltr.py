@@ -53,7 +53,7 @@ def labels():
 def build(a):
     P = pairs(load_preds(a.preds), a.top)
     df = pd.DataFrame(P, columns=["qid", "q", "r", "doc", "text"]).assign(s=np.load(a.scores))
-    srcs = {k: json.load(open(f)) for k, f in (("d1", a.dense), ("d2", a.dense2), ("d3", a.dense3)) if f}
+    srcs = {k: json.load(open(f)) for k, f in (("d1", a.dense), ("d2", a.dense2), ("d3", a.dense3), ("d4", a.dense4), ("d5", a.dense5)) if f}
     url = pd.read_parquet("data/ViBioMIR/links_corpus.parquet").set_index("id").url
     rows = []
     for qid, g in df.groupby("qid"):
@@ -151,6 +151,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preds", required=True); ap.add_argument("--scores", required=True); ap.add_argument("--top", type=int, default=200)
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
+    ap.add_argument("--dense4", default="", help="nguồn dense thêm (vd. HyDE)"); ap.add_argument("--dense5", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
     ap.add_argument("--rr3", default="", help="parquet (qid, doc_id, s) cross-encoder fine-tune theo fold")
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
