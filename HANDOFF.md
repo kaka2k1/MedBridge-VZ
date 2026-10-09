@@ -388,3 +388,10 @@ agy -p "Đọc HANDOFF.md rồi thực hiện mục 6.1: tạo các bài v3, ghi
 2. Thử docs nhiều hơn với LTR: `--adaptive 2.6`.
 3. Kaggle GPU hết quota tới tuần sau → Colab / Kaggle TPU cho model lớn.
 Hôm nay (UTC 07/10) đã nộp 1/10 (v32).
+
+**09/10 tối – đang chạy:** fine-tune bge-reranker-v2-m3 theo 5 fold (`colab/ft_ce.py <folds>`, batch 8 + grad checkpointing, ~65 phút/fold trên T4):
+profile tài khoản Colab 4 chạy `0 1 2` → `/content/ce_ft_0_1_2.parquet`; profile tài khoản Colab 3 chạy `3 4 -1` → `/content/ce_ft_3_4_-1.parquet`
+(-1 = model train trên tất cả nhãn, chấm 600 câu private). Tải 2 file về ~/Downloads → gộp `data/cache/ce_ft.parquet` →
+`ltr.py ... --rr3 data/cache/ce_ft.parquet --stages 2 --out data/cache/ltr_order_oof13.json` → build/nộp như v42 (--order oof13).
+Đã thử, không giúp: LambdaRank (`--objective lambdarank`) ≈ binary; bge-reranker-v2-gemma AUC .740; jina-reranker-v2 .674; AITeamVN emb .729.
+Colab: tài khoản Colab 2 hết GPU; tài khoản Colab 1 dùng hết hôm 08/10.

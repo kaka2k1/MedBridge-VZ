@@ -14,7 +14,8 @@ NAME, ML, BS, LR = "BAAI/bge-reranker-v2-m3", 384, 8, 1e-5
 tr = pd.read_parquet("/content/ce_train.parquet"); sc = pd.read_parquet("/content/ce_score.parquet")
 Q = pd.read_parquet("/content/query.parquet").set_index("id")["query"]
 tok = AutoTokenizer.from_pretrained(NAME)
-OUT = "/content/ce_ft.parquet"
+folds = [int(x) for x in sys.argv[1:]] if len(sys.argv) > 1 else [0, 1, 2, 3, 4, -1]
+OUT = "/content/ce_ft_" + "_".join(map(str, folds)) + ".parquet"
 done = set(pd.read_parquet(OUT).fold.unique()) if os.path.exists(OUT) else set()
 folds = [int(x) for x in sys.argv[1:]] if len(sys.argv) > 1 else [0, 1, 2, 3, 4, -1]
 

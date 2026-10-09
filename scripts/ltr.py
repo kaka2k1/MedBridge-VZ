@@ -156,6 +156,7 @@ def main():
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
     ap.add_argument("--rr", default="", help="parquet (qid, doc_id, s) điểm cross-encoder")
     ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
+    ap.add_argument("--objective", default="binary", choices=["binary", "lambdarank"])
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
     X, emb = build(a)
@@ -174,18 +175,27 @@ def main():
     qs = np.array(sorted(X[X.lab].qid.unique())); rng = np.random.default_rng(0); rng.shuffle(qs)
     folds = np.array_split(qs, 5)
 
+    if a.objective == "lambdarank":
+        params.update(objective="lambdarank", metric="ndcg", lambdarank_truncation_level=200, label_gain=[0, 1])
+
+    def mkds(D):
+        ds = lgb.Dataset(D[feats], D["y"])
+        if a.objective == "lambdarank":
+            ds.set_group(D.groupby("qid", sort=False).size().values)
+        return ds
+
     def fit(X, feats):
         cv = []
         for k in range(5):
             te = X.qid.isin(folds[k]) & X.lab; tr = ~X.qid.isin(folds[k]) & X.lab
             dr = dom_rate(X[tr]); Xk = X.assign(dom_rate=X.dom.map(dr).fillna(0.08))
-            m = lgb.train(params, lgb.Dataset(Xk.loc[tr, feats], Xk.loc[tr, "y"]), a.rounds)
+            m = lgb.train(params, mkds(Xk.loc[tr]), a.rounds)
             allq = X.qid.isin(folds[k])   # dự đoán out-of-fold cho MỌI ứng viên của câu trong fold (điểm public trung thực)
             cv.append(Xk[allq].assign(ltr=m.predict(Xk.loc[allq, feats])))
         cv = pd.concat(cv)
         print("RRF", metrics(cv[cv.lab], "rrf")); print("LTR", metrics(cv[cv.lab], "ltr"), flush=True)
         dr = dom_rate(X[X.lab]); X["dom_rate"] = X.dom.map(dr).fillna(0.08)
-        m = lgb.train(params, lgb.Dataset(X.loc[X.lab, feats], X.loc[X.lab, "y"]), a.rounds)
+        m = lgb.train(params, mkds(X.loc[X.lab]), a.rounds)
         X["ltr"] = m.predict(X[feats])
         oof = cv.set_index(["qid", "doc"]).ltr
         X["ltr"] = [oof.get((q, d), v) for q, d, v in zip(X.qid, X.doc, X.ltr)]   # câu có nhãn: dùng điểm OOF
