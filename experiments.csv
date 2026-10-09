@@ -47,3 +47,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-08 22:30,v42_cewin (4889),v40 + window cross-encoder (CE on best dense window; ce2/ce_max) LTR12,0.2239,0.4276,0.2253,0.4291,0.3352
 2026-10-09 22:45,v43h_hyde,v42 + HyDE (Qwen3-4B-Instruct-2507 pseudo-docs; GreenNode search hyde+mix as LTR sources d4/d5),0.2234,0.4286,0.2247,0.4298,0.3356
 2026-10-09 23:10,v43_ceft (4977),v42 + fold-wise fine-tuned bge-reranker-v2-m3 (OOF public; all-data model for private) as LTR feature (LTR13),0.2269,0.4283,0.2286,0.4299,0.3370
+2026-10-09 23:50,v44_ceft_hyde (4980),v43 + HyDE sources (LTR14): HyDE no gain on top of CE-ft,0.2266,0.4263,0.2283,0.4283,0.3366
