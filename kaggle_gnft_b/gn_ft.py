@@ -18,7 +18,7 @@ G = lambda n: glob.glob(f"/kaggle/input/**/{n}", recursive=True)[0]
 tr = pd.read_parquet(G("ce_train.parquet")); sc = pd.read_parquet(G("gn_score_pairs.parquet"))
 txt = pd.read_parquet(G("cand_docs.parquet")).set_index("doc_id").text
 Q = pd.read_parquet(G("query.parquet")).set_index("id")["query"]
-_c = glob.glob("/kaggle/input/**/greennode/config.json", recursive=True)   # GreenNode bị gated trên HF -> bản copy riêng tư
+_c = [p for p in glob.glob("/kaggle/input/**/modules.json", recursive=True) if os.path.exists(os.path.join(os.path.dirname(p), "model.safetensors"))]   # GreenNode bị gated trên HF -> bản copy riêng tư
 BASE = os.path.dirname(_c[0]) if _c else "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
 OUT = "/kaggle/working/gnft_" + "_".join(map(str, FOLDS)) + ".parquet"
 res = []
