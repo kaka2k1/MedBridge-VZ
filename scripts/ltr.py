@@ -117,6 +117,13 @@ def build(a):
         X["ceft_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
         X["ceft_rank"] = X.groupby("qid").ceft_s.rank(ascending=False).fillna(MISS)
         X["ceft_gap"] = X.groupby("qid").ceft_s.transform("max") - X.ceft_s
+    if a.rr4:   # cross-encoder fine-tune trên cửa sổ dense (colab/ft_ce_win.py; OOF public)
+        R = pd.read_parquet(a.rr4); R["doc_id"] = R.doc_id.astype(str)
+        rs = dict(zip(zip(R.qid, R.doc_id), R.s))
+        X["ceftw_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
+        X["ceftw_rank"] = X.groupby("qid").ceftw_s.rank(ascending=False).fillna(MISS)
+        if "ceft_s" in X:
+            X["ceft_max"] = X[["ceft_s", "ceftw_s"]].max(axis=1)
     if a.rr2:   # cross-encoder trên cửa sổ dense tốt nhất của doc (colab/rerank_win.py)
         R = pd.read_parquet(a.rr2); R["doc_id"] = R.doc_id.astype(str)
         rs = dict(zip(zip(R.qid, R.doc_id), R.s))
@@ -153,10 +160,12 @@ def main():
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--dense4", default="", help="nguồn dense thêm (vd. HyDE)"); ap.add_argument("--dense5", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--rr4", default="", help="parquet cross-encoder fine-tune theo cửa sổ")
     ap.add_argument("--rr3", default="", help="parquet (qid, doc_id, s) cross-encoder fine-tune theo fold")
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
     ap.add_argument("--rr", default="", help="parquet (qid, doc_id, s) điểm cross-encoder")
     ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
+    ap.add_argument("--seeds", type=int, default=1, help="số model LightGBM trung bình (bagging)")
     ap.add_argument("--objective", default="binary", choices=["binary", "lambdarank"])
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
@@ -185,18 +194,30 @@ def main():
             ds.set_group(D.groupby("qid", sort=False).size().values)
         return ds
 
+    def bag_train(D):   # trung bình nhiều seed (bagging_seed/feature_fraction_seed) – giảm phương sai
+        ms = [lgb.train({**params, "seed": 17 * i + 1, "bagging_seed": 31 * i + 7, "feature_fraction_seed": 13 * i + 3}, mkds(D), a.rounds)
+              for i in range(a.seeds)]
+
+        class Bag:
+            def predict(self, Z):
+                return np.mean([mm.predict(Z) for mm in ms], 0)
+
+            def feature_importance(self, kind):
+                return np.mean([mm.feature_importance(kind) for mm in ms], 0)
+        return Bag()
+
     def fit(X, feats):
         cv = []
         for k in range(5):
             te = X.qid.isin(folds[k]) & X.lab; tr = ~X.qid.isin(folds[k]) & X.lab
             dr = dom_rate(X[tr]); Xk = X.assign(dom_rate=X.dom.map(dr).fillna(0.08))
-            m = lgb.train(params, mkds(Xk.loc[tr]), a.rounds)
+            m = bag_train(Xk.loc[tr])
             allq = X.qid.isin(folds[k])   # dự đoán out-of-fold cho MỌI ứng viên của câu trong fold (điểm public trung thực)
             cv.append(Xk[allq].assign(ltr=m.predict(Xk.loc[allq, feats])))
         cv = pd.concat(cv)
         print("RRF", metrics(cv[cv.lab], "rrf")); print("LTR", metrics(cv[cv.lab], "ltr"), flush=True)
         dr = dom_rate(X[X.lab]); X["dom_rate"] = X.dom.map(dr).fillna(0.08)
-        m = lgb.train(params, mkds(X.loc[X.lab]), a.rounds)
+        m = bag_train(X.loc[X.lab])
         X["ltr"] = m.predict(X[feats])
         oof = cv.set_index(["qid", "doc"]).ltr
         X["ltr"] = [oof.get((q, d), v) for q, d, v in zip(X.qid, X.doc, X.ltr)]   # câu có nhãn: dùng điểm OOF
