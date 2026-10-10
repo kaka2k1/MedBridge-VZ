@@ -51,6 +51,8 @@ for f in folds:
     res = part[["qid", "doc_id"]].assign(s=s, fold=f)
     prev = pd.read_parquet(OUT) if os.path.exists(OUT) else None
     pd.concat([prev, res]).to_parquet(OUT, index=False)
+    if os.environ.get("SAVE_MODEL"):   # lưu model (fp16) để chấm lại ứng viên mới mà không phải train lại
+        m.half().save_pretrained(f"{os.environ['SAVE_MODEL']}/ce_fold{f}"); tok.save_pretrained(f"{os.environ['SAVE_MODEL']}/ce_fold{f}")
     print(f"FOLD {f} done: train {len(trf)} score {len(part)} in {time.time() - t0:.0f}s", flush=True)
     del m, opt; torch.cuda.empty_cache()
 print("ALLDONE", flush=True)
