@@ -50,3 +50,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-09 23:50,v44_ceft_hyde (4980),v43 + HyDE sources (LTR14): HyDE no gain on top of CE-ft,0.2266,0.4263,0.2283,0.4283,0.3366
 2026-10-10 09:00,v45s_bag5,v43 + LTR 5-seed bagging (--seeds 5),0.2269,0.4285,0.2284,0.4298,0.3374
 2026-10-10 11:40,v46_ceftwin (5045),v45s + fold-wise fine-tuned CE on best dense window (--rr4; Colab folds 0-1 + Kaggle folds 2-4 & all-data),0.2275,0.4300,0.2289,0.4312,0.3386
+2026-10-10 15:20,v47 (5074),FAILED: relay kernel push blocked by 5 CPU sessions (crawl) -> stale relay output; fixed submit_api checks,,,,,

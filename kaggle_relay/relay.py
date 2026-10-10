@@ -37,7 +37,7 @@ if os.path.getsize(z) >= 100 * 10**6:
     raise SystemExit("zip >= 100MB")
 r = subprocess.run(["curl", "-sS", "-T", z, "-H", "Content-Type: application/zip", "-o", "/dev/null", "-w", "%{http_code} %{speed_upload}", url],
                    capture_output=True, text=True)
-open("/kaggle/working/put_result.txt", "w").write(r.stdout + " " + r.stderr[:200] + f" size={os.path.getsize(z)}")
+open("/kaggle/working/put_result.txt", "w").write(r.stdout + " " + r.stderr[:200] + f" size={os.path.getsize(z)} src={os.path.basename(src[0]) if src else 'raw'}")
 print(r.stdout, r.stderr[:200])
 if os.path.exists("/kaggle/working/sub_lzma.zip"):
     os.remove("/kaggle/working/sub_lzma.zip")

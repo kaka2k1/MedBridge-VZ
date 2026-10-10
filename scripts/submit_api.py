@@ -132,7 +132,9 @@ if __name__ == "__main__":
         else:
             sys.exit("relay dataset not updated")
         for i in range(10):   # 409 Conflict khi dataset mới chưa sẵn sàng -> thử lại
-            if subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"]).returncode == 0:
+            r = subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"], capture_output=True, text=True)
+            print(r.stdout.strip()[-200:], flush=True)
+            if "successfully" in r.stdout:   # CLI trả 0 cả khi lỗi (vd. "Maximum batch CPU session count") ⇒ kiểm tra chữ
                 break
             time.sleep(30)
         else:
@@ -147,6 +149,8 @@ if __name__ == "__main__":
         subprocess.run([kg, "kernels", "output", "kakaoffical/r2ai-relay-put", "-p", "data/cache/relay_out"], capture_output=True)
         res = open("data/cache/relay_out/put_result.txt").read() if os.path.exists("data/cache/relay_out/put_result.txt") else st
         print("relay:", res.strip(), flush=True)
+        if tag not in res:   # kết quả phải của ĐÚNG lần này (tránh đọc output cũ – v47 lần 1 bị Failed vì vậy)
+            sys.exit(f"relay result is stale/mismatched: {res[:120]}")
         if not res.startswith("200"):
             sys.exit("relay upload failed")
         sid = finish(s, key, a.phase)
