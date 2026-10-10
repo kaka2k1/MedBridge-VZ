@@ -117,6 +117,12 @@ def build(a):
         X["ceft_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
         X["ceft_rank"] = X.groupby("qid").ceft_s.rank(ascending=False).fillna(MISS)
         X["ceft_gap"] = X.groupby("qid").ceft_s.transform("max") - X.ceft_s
+    if a.gnft:   # GreenNode bi-encoder fine-tune theo fold (kaggle_gnft_*; OOF public) – cos(query, doc)
+        R = pd.read_parquet(a.gnft); R["doc_id"] = R.doc_id.astype(str)
+        rs = dict(zip(zip(R.qid, R.doc_id), R.s))
+        X["gnft_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
+        X["gnft_rank"] = X.groupby("qid").gnft_s.rank(ascending=False).fillna(MISS)
+        X["gnft_gap"] = X.groupby("qid").gnft_s.transform("max") - X.gnft_s
     if a.rr4:   # cross-encoder fine-tune trên cửa sổ dense (colab/ft_ce_win.py; OOF public)
         R = pd.read_parquet(a.rr4); R["doc_id"] = R.doc_id.astype(str)
         rs = dict(zip(zip(R.qid, R.doc_id), R.s))
@@ -160,6 +166,7 @@ def main():
     ap.add_argument("--dense", required=True); ap.add_argument("--dense2", default=""); ap.add_argument("--dense3", default="")
     ap.add_argument("--dense4", default="", help="nguồn dense thêm (vd. HyDE)"); ap.add_argument("--dense5", default="")
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
+    ap.add_argument("--gnft", default="", help="parquet (qid, doc_id, s) GreenNode fine-tune theo fold")
     ap.add_argument("--rr4", default="", help="parquet cross-encoder fine-tune theo cửa sổ")
     ap.add_argument("--rr3", default="", help="parquet (qid, doc_id, s) cross-encoder fine-tune theo fold")
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
