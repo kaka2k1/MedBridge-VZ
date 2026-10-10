@@ -11,7 +11,7 @@ DICT = int(__import__("os").environ.get("R2AI_LZMA_DICT_MB", "512")) << 20
 
 def _init(self):
     f = {"id": lzma.FILTER_LZMA1, "preset": 9 | lzma.PRESET_EXTREME, "dict_size": DICT}
-    if DICT > (512 << 20):   # bt4 tốn ~11.5×dict RAM; hc4 ~7.5×
+    if DICT > (512 << 20) or __import__("os").environ.get("R2AI_LZMA_HC4"):   # bt4 tốn ~11.5×dict RAM; hc4 ~7.5×
         f["mf"] = lzma.MF_HC4
     props = lzma._encode_filter_properties(f)
     self._comp = lzma.LZMACompressor(lzma.FORMAT_RAW, filters=[f])
