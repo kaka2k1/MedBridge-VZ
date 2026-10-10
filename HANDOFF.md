@@ -75,7 +75,7 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 (`colab/ft_ce.py`; OOF cho câu public, model train-all cho câu private; held-out P@10 .361→.403) → `data/cache/ce_ft.parquet`;
 `ltr.py ... --rr data/cache/rr_bge_all.parquet --rr2 data/cache/rr_win.parquet --rr3 data/cache/ce_ft.parquet --stages 2 --out data/cache/ltr_order_oof13.json`.
 HyDE (Qwen3-4B-Instruct-2507 → `colab/hyde_gen.py`, `scripts/hyde_search.py`, nguồn --dense4/--dense5): v43h 0.3356 (≈v42), v44 (v43+HyDE) 0.3366 ⇒ bỏ.
-Embedding: embeddinggemma-2 AUC .741 (và phát hành 14/09/2026 – KHÔNG hợp lệ); GreenNode .786 vẫn tốt nhất.
+Embedding: embeddinggemma-2 AUC .741 (phát hành 14/09/2026 – KHÔNG hợp lệ; luật: ≤14B, trước 01/06/2026); GreenNode .786 vẫn tốt nhất.
 
 **BÀI TỐT NHẤT (08/10 22:30): v42 = 0.3352** (= v40 + CE trên cửa sổ dense tốt nhất: `ltr.py ... --rr data/cache/rr_bge_all.parquet --rr2 data/cache/rr_win.parquet`). jina-reranker-v2 (cần transformers 4.46.3, `colab/eval_jina.py`) AUC .674 – kém. Trước đó **v40 = 0.3347** (= v39 + cross-encoder bge-reranker-v2-m3 top-120/câu làm đặc trưng LTR: `ltr.py --e5 data/cache/e5 --rr data/cache/rr_bge.parquet --stages 2`; điểm CE từ `colab/rerank_bge.py`). Trước đó **v39 = 0.3307** (= v38 + đặc trưng e5 trong LTR: `ltr.py --e5 data/cache/e5 --stages 2`; e5 mã hoá 222k ứng viên trên Colab bằng `colab/encode_e5.py`). Trước đó **v38 = 0.3256** (LTR8 + `--ef2 1.9 --ef2-range 30 280 --chunk-max 230`, ID 4762). Trước đó v36 = 0.3248 (ID 4759; docs .324 / chunks .326; v37 c=2.2 cũng 0.3248 ⇒ phẳng):
 1. **PRF** trong `scripts/ltr.py`: cos(doc, trọng tâm top-5/20 doc) bằng embedding GreenNode doc-level (`data/cache/dense_gn`) – đặc trưng mạnh nhất;
@@ -401,3 +401,6 @@ profile tài khoản Colab 4 chạy `0 1 2` → `/content/ce_ft_0_1_2.parquet`; 
 `ltr.py ... --rr3 data/cache/ce_ft.parquet --stages 2 --out data/cache/ltr_order_oof13.json` → build/nộp như v42 (--order oof13).
 Đã thử, không giúp: LambdaRank (`--objective lambdarank`) ≈ binary; bge-reranker-v2-gemma AUC .740; jina-reranker-v2 .674; AITeamVN emb .729.
 Colab: tài khoản Colab 2 hết GPU; tài khoản Colab 1 dùng hết hôm 08/10.
+
+**Luật (R2AI2026_cuoc_thi.md):** model mở ≤ 14B tham số, phát hành TRƯỚC 01/06/2026; cấm LLM đóng. Không có vòng loại: private test
+01/11–04/11/2026 (tối đa 5 bài tổng, quyết định xếp hạng); kết quả chỉ chính thức khi nộp working notes paper. Điểm public chỉ để thử.
