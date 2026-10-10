@@ -71,7 +71,7 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 (`colab/eval_embed_colab2.py`) – runtime Colab bị ngắt (hết thời lượng free). Mẹo Colab: gõ phím vào ô bị mất ký tự đầu → đặt nội dung ô qua
 `window.monaco.editor.getModels()[i].setValue(...)`; nút "Tải lên bộ nhớ phiên" + upload_file để đưa file lên; tải kết quả về bằng `files.download`.
 
-**BÀI TỐT NHẤT (10/10 09:00): v45s = 0.3374** (= v43 + `ltr.py --seeds 5`). Trước đó **v43 = 0.3370** (ID 4977) = v42 + cross-encoder bge-reranker-v2-m3 FINE-TUNE theo 5 fold trên nhãn
+**BÀI TỐT NHẤT (10/10 11:40): v46 = 0.3386** (= v45s + CE fine-tune theo fold trên CỬA SỔ dense: `colab/ft_ce_win.py` / `kaggle_cewin_{a,b,c}` → `data/cache/ce_ftwin.parquet`, `ltr.py ... --rr3 data/cache/ce_ft.parquet --rr4 data/cache/ce_ftwin.parquet --stages 2 --seeds 5 --out data/cache/ltr_order_oof15.json`). Trước đó **v45s = 0.3374** (= v43 + `ltr.py --seeds 5`). Trước đó **v43 = 0.3370** (ID 4977) = v42 + cross-encoder bge-reranker-v2-m3 FINE-TUNE theo 5 fold trên nhãn
 (`colab/ft_ce.py`; OOF cho câu public, model train-all cho câu private; held-out P@10 .361→.403) → `data/cache/ce_ft.parquet`;
 `ltr.py ... --rr data/cache/rr_bge_all.parquet --rr2 data/cache/rr_win.parquet --rr3 data/cache/ce_ft.parquet --stages 2 --out data/cache/ltr_order_oof13.json`.
 HyDE (Qwen3-4B-Instruct-2507 → `colab/hyde_gen.py`, `scripts/hyde_search.py`, nguồn --dense4/--dense5): v43h 0.3356 (≈v42), v44 (v43+HyDE) 0.3366 ⇒ bỏ.
