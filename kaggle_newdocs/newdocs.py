@@ -22,6 +22,7 @@ _c = [p for p in glob.glob("/kaggle/input/**/modules.json", recursive=True)
       if os.path.exists(os.path.join(os.path.dirname(p), "model.safetensors")) and "/models/" not in p]
 GN = os.path.dirname(_c[0])
 MD = os.path.dirname(G("ce_doc/config.json"))[:-len("/ce_doc")]
+print("GN", GN, "MD", MD, flush=True)
 ids = docs.doc_id.astype(str).tolist()
 dtext = [f"{ti}\n{tx[:1500]}" for ti, tx in zip(docs.title.fillna(""), docs.text.fillna(""))]
 MAX_W, TARGET, TOPN, NPAIR = 6, 1600, 300, 100
