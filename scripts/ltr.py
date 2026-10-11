@@ -174,9 +174,17 @@ def main():
     ap.add_argument("--e5", default="", help="thư mục e5_docs.npy/e5_ids.json/e5_queries.npy/e5_qids.json")
     ap.add_argument("--seeds", type=int, default=1, help="số model LightGBM trung bình (bagging)")
     ap.add_argument("--objective", default="binary", choices=["binary", "lambdarank"])
+    ap.add_argument("--xcache", default="", help="pickle đặc trưng (X, emb) để thử siêu tham số nhanh")
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
-    X, emb = build(a)
+    import os
+    import pickle
+    if a.xcache and os.path.exists(a.xcache):   # thử siêu tham số nhanh: bỏ qua bước dựng đặc trưng (đọc corpus) nếu đã cache
+        X, emb = pickle.load(open(a.xcache, "rb"))
+    else:
+        X, emb = build(a)
+        if a.xcache:
+            pickle.dump((X, emb), open(a.xcache, "wb"), protocol=4)
     pos, seen = labels()
     # tiên nghiệm tên miền: tính trong từng fold (chỉ từ câu train) để tránh rò rỉ
     X["lab"] = [d in seen.get(q, ()) for q, d in zip(X.qid, X.doc)]
@@ -184,6 +192,7 @@ def main():
     feats = [c for c in X.columns if c not in ("qid", "doc", "dom", "lab", "y")] + ["dom_rate"]
     params = dict(objective="binary", learning_rate=0.05, num_leaves=31, min_data_in_leaf=100, feature_fraction=0.8,
                   bagging_fraction=0.8, bagging_freq=1, verbose=-1)
+    params.update(json.loads(os.environ.get("R2AI_LTR_PARAMS", "{}")))   # vd. '{"num_leaves": 63, "learning_rate": 0.03}'
 
     def dom_rate(train):
         t = train.groupby("dom").y.agg(["sum", "count"])

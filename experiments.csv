@@ -52,3 +52,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-10 11:40,v46_ceftwin (5045),v45s + fold-wise fine-tuned CE on best dense window (--rr4; Colab folds 0-1 + Kaggle folds 2-4 & all-data),0.2275,0.4300,0.2289,0.4312,0.3386
 2026-10-10 15:20,v47 (5074),FAILED: relay kernel push blocked by 5 CPU sessions (crawl) -> stale relay output; fixed submit_api checks,,,,,
 2026-10-11 02:00,v47_gnft (5096),v46 + fold-wise fine-tuned GreenNode feature (--gnft; Kaggle gnft_a/b) -> ltr_order_oof16; LZMA dict384 HC4,0.2307,0.4354,0.2317,0.4372,0.3408
+2026-10-11 20:00,v48_hp (5214),v47 + LTR params lr0.03 l2=10 700 rounds (oof18),0.2335,0.4325,0.2345,0.4348,0.3411
