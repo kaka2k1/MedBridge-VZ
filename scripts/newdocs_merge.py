@@ -11,17 +11,21 @@ import shutil
 import numpy as np
 import pandas as pd
 
-OLD = {"d1": "data/cache/dense_gn_top300_v2.json", "d2": "data/cache/kaggle_bgem3_out/dense_chunks_top.json",
-       "d3": "data/cache/dense_chunks_top_v2.json"}
-NEW = {"d1": "data/cache/dense_gn_top300_v3.json", "d2": "data/cache/dense_bgem3_chunks_v3.json", "d3": "data/cache/dense_chunks_top_v3.json"}
+def paths(v):   # v=2: bản gốc trước khi gộp doc mới; v>=3: sau mỗi lần gộp
+    if v == 2:
+        return {"d1": "data/cache/dense_gn_top300_v2.json", "d2": "data/cache/kaggle_bgem3_out/dense_chunks_top.json",
+                "d3": "data/cache/dense_chunks_top_v2.json", "e5": "data/cache/e5", "rr": lambda n: f"data/cache/{n}.parquet"}
+    return {"d1": f"data/cache/dense_gn_top300_v{v}.json", "d2": f"data/cache/dense_bgem3_chunks_v{v}.json",
+            "d3": f"data/cache/dense_chunks_top_v{v}.json", "e5": f"data/cache/e5_v{v}", "rr": lambda n: f"data/cache/{n}_v{v}.parquet"}
 RR = {"rr": "rr_bge_all", "rr2": "rr_win", "rr3": "ce_ft", "rr4": "ce_ftwin", "gnft": "gnft"}
 
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--ver", type=int, default=3, help="phiên bản tạo ra (gộp lên bản ver-1)")
     ap.add_argument("--kout", required=True); ap.add_argument("--docs", required=True); ap.add_argument("--tag", default="91000")
     a = ap.parse_args()
-    K = a.kout
+    K = a.kout; OLD, NEW = paths(a.ver - 1), paths(a.ver)
     # 1) doc mới vào data/docs (fuse_dense / ltr đọc văn bản & tiêu đề từ đây)
     dst = f"data/docs/corpus-{a.tag}.parquet"
     shutil.copy(f"{a.docs}/new_docs.parquet", dst); print("docs ->", dst)
@@ -41,22 +45,22 @@ def main():
         nn = sum(str(x[1]) in {str(y[1]) for y in new.get(q, [])} for q in out for x in out[q])
         json.dump(out, open(NEW[k], "w"), ensure_ascii=False); print(k, "->", NEW[k], f"new-doc entries {nn} ({nn / len(out):.1f}/câu)")
     # 4) e5: nối embedding doc mới vào bản cũ
-    os.makedirs("data/cache/e5_v3", exist_ok=True)
-    ids = json.load(open("data/cache/e5/e5_ids.json")) + json.load(open(f"{K}/e5_ids.json"))
-    np.save("data/cache/e5_v3/e5_docs.npy", np.concatenate([np.load("data/cache/e5/e5_docs.npy"), np.load(f"{K}/e5_docs.npy")]))
-    json.dump(ids, open("data/cache/e5_v3/e5_ids.json", "w"))
+    os.makedirs(NEW["e5"], exist_ok=True)
+    ids = json.load(open(f"{OLD['e5']}/e5_ids.json")) + json.load(open(f"{K}/e5_ids.json"))
+    np.save(f"{NEW['e5']}/e5_docs.npy", np.concatenate([np.load(f"{OLD['e5']}/e5_docs.npy"), np.load(f"{K}/e5_docs.npy")]))
+    json.dump(ids, open(f"{NEW['e5']}/e5_ids.json", "w"))
     for f in ("e5_queries.npy", "e5_qids.json"):
-        shutil.copy(f"data/cache/e5/{f}", f"data/cache/e5_v3/{f}")
+        shutil.copy(f"{OLD['e5']}/{f}", f"{NEW['e5']}/{f}")
     # 5) điểm cross-encoder / GN fine-tune cho cặp (câu, doc mới) – model train trên tất cả nhãn (kaggle_savemodels)
     P = pd.read_parquet(f"{K}/pairs.parquet"); P["doc_id"] = P.doc_id.astype(str)
     for col, name in RR.items():
-        R = pd.read_parquet(f"data/cache/{name}.parquet")[["qid", "doc_id", "s"]]; R["doc_id"] = R.doc_id.astype(str)
-        pd.concat([R, P[["qid", "doc_id"]].assign(s=P[col])]).drop_duplicates(["qid", "doc_id"]).to_parquet(f"data/cache/{name}_v3.parquet", index=False)
+        R = pd.read_parquet(OLD["rr"](name))[["qid", "doc_id", "s"]]; R["doc_id"] = R.doc_id.astype(str)
+        pd.concat([R, P[["qid", "doc_id"]].assign(s=P[col])]).drop_duplicates(["qid", "doc_id"]).to_parquet(NEW["rr"](name), index=False)
     print("pairs", len(P))
-    v3 = lambda n: f"data/cache/{n}_v3.parquet"
+    v3 = NEW["rr"]
     print(f"ltr.py --preds data/cache/vi_preds_300.jsonl --scores data/cache/rr_gn_top200.npy --dense {NEW['d1']} --dense2 {NEW['d2']} "
-          f"--dense3 {NEW['d3']} --e5 data/cache/e5_v3 --rr {v3('rr_bge_all')} --rr2 {v3('rr_win')} --rr3 {v3('ce_ft')} --rr4 {v3('ce_ftwin')} "
-          f"--gnft {v3('gnft')} --stages 2 --seeds 5 --out data/cache/ltr_order_oof17.json")
+          f"--dense3 {NEW['d3']} --e5 {NEW['e5']} --rr {v3('rr_bge_all')} --rr2 {v3('rr_win')} --rr3 {v3('ce_ft')} --rr4 {v3('ce_ftwin')} "
+          f"--gnft {v3('gnft')} --stages 2 --seeds 5 --out data/cache/ltr_order_v{a.ver}.json")
 
 
 if __name__ == "__main__":

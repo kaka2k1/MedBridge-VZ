@@ -18,7 +18,11 @@ SRC = {"d1": "data/cache/dense_gn_top300_v2.json", "d2": "data/cache/kaggle_bgem
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--out", required=True)
+    ap.add_argument("--ver", type=int, default=2, help="bản list dense hiện tại (ngưỡng hạng 300 lấy từ đây)")
     a = ap.parse_args()
+    if a.ver > 2:
+        SRC.update(d1=f"data/cache/dense_gn_top300_v{a.ver}.json", d2=f"data/cache/dense_bgem3_chunks_v{a.ver}.json",
+                   d3=f"data/cache/dense_chunks_top_v{a.ver}.json")
     have = set()
     for f in glob.glob("data/docs/corpus-*.parquet"):
         have |= set(map(str, pq.read_table(f, columns=["doc_id"]).column("doc_id").to_pylist()))
