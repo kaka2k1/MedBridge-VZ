@@ -55,3 +55,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-11 20:00,v48_hp (5214),v47 + LTR params lr0.03 l2=10 700 rounds (oof18),0.2335,0.4325,0.2345,0.4348,0.3411
 2026-10-12 00:00,v49_newdocs (5233),v48 + 15k new crawled VI docs (newdocs kernel feats; v3 caches; oof17),0.2329,0.4439,0.2341,0.4460,0.3475
 2026-10-12 05:00,v50_newdocs2 (5249),v49 + 18k more crawled VI docs (crawl3 s0-s3; v4 caches; oof19),0.2328,0.4673,0.2340,0.4682,0.3587
+2026-10-12 15:00,v51_newdocs3 (5326),v50 + 19k crawled VI docs (crawl3 s4-s7 + local8 part; v5 caches; oof20); R2AI_REORDER LZMA 93.2MB,0.2350,0.4945,0.2368,0.4946,0.3730
