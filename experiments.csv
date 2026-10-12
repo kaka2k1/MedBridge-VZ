@@ -56,3 +56,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-12 00:00,v49_newdocs (5233),v48 + 15k new crawled VI docs (newdocs kernel feats; v3 caches; oof17),0.2329,0.4439,0.2341,0.4460,0.3475
 2026-10-12 05:00,v50_newdocs2 (5249),v49 + 18k more crawled VI docs (crawl3 s0-s3; v4 caches; oof19),0.2328,0.4673,0.2340,0.4682,0.3587
 2026-10-12 15:00,v51_newdocs3 (5326),v50 + 19k crawled VI docs (crawl3 s4-s7 + local8 part; v5 caches; oof20); R2AI_REORDER LZMA 93.2MB,0.2350,0.4945,0.2368,0.4946,0.3730
+2026-10-13 02:40,v52_newdocs4 (5411),v51 + 16k crawled VI docs (crawl4 s0-s3 + shard8 rest; v6 caches; oof21); REORDER LZMA 97.4MB,0.2352,0.5122,0.2374,0.5116,0.3817
