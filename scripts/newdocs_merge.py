@@ -26,6 +26,7 @@ def main():
     ap.add_argument("--kout", required=True); ap.add_argument("--docs", required=True); ap.add_argument("--tag", default="91000")
     a = ap.parse_args()
     K = a.kout; OLD, NEW = paths(a.ver - 1), paths(a.ver)
+    RM = a.ver - 1 >= 3 and not os.environ.get("R2AI_MERGE_KEEP")   # mặc định xoá đầu vào cũ (v>=3) cho đỡ tốn ổ; R2AI_MERGE_KEEP=1 để giữ
     # 1) doc mới vào data/docs (fuse_dense / ltr đọc văn bản & tiêu đề từ đây)
     dst = f"data/docs/corpus-{a.tag}.parquet"
     shutil.copy(f"{a.docs}/new_docs.parquet", dst); print("docs ->", dst)
@@ -44,6 +45,8 @@ def main():
             out[q] = sorted(best.values(), key=lambda x: -x[0])[:300]
         nn = sum(str(x[1]) in {str(y[1]) for y in new.get(q, [])} for q in out for x in out[q])
         json.dump(out, open(NEW[k], "w"), ensure_ascii=False); print(k, "->", NEW[k], f"new-doc entries {nn} ({nn / len(out):.1f}/câu)")
+        if RM:   # ổ gần đầy: bỏ đầu vào ngay khi đã ghi xong bản mới
+            os.remove(f"{K}/{k}_new.json"); os.remove(OLD[k])
     # 4) e5: nối embedding doc mới vào bản cũ
     os.makedirs(NEW["e5"], exist_ok=True)
     ids = json.load(open(f"{OLD['e5']}/e5_ids.json")) + json.load(open(f"{K}/e5_ids.json"))
@@ -51,6 +54,8 @@ def main():
     json.dump(ids, open(f"{NEW['e5']}/e5_ids.json", "w"))
     for f in ("e5_queries.npy", "e5_qids.json"):
         shutil.copy(f"{OLD['e5']}/{f}", f"{NEW['e5']}/{f}")
+    if RM:
+        shutil.rmtree(OLD["e5"])
     # 5) điểm cross-encoder / GN fine-tune cho cặp (câu, doc mới) – model train trên tất cả nhãn (kaggle_savemodels)
     P = pd.read_parquet(f"{K}/pairs.parquet"); P["doc_id"] = P.doc_id.astype(str)
     for col, name in RR.items():
