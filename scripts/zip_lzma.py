@@ -26,8 +26,23 @@ def write_zip(out, data: bytes, name="submission.json"):
         z.writestr(name, data)
 
 
+def reorder(raw: bytes) -> bytes:
+    """Xếp các câu có chunk trùng nhau cạnh nhau (tham lam theo 40 câu gần nhất) → từ điển LZMA bắt được lặp; nội dung từng câu giữ nguyên."""
+    import json
+    from collections import deque
+    d = json.loads(raw)
+    H = [set(hash(c["chunk_text"]) for c in q["relevant_chunks"]) for q in d]
+    order, left, recent = [0], set(range(1, len(d))), deque([0], maxlen=40)
+    while left:
+        U = set().union(*(H[i] for i in recent))
+        j = max(left, key=lambda i: len(H[i] & U)); order.append(j); left.remove(j); recent.append(j)
+    return json.dumps([d[i] for i in order], ensure_ascii=False).encode()
+
+
 if __name__ == "__main__":
     d = zipfile.ZipFile(sys.argv[1]).read("submission.json")
+    if __import__("os").environ.get("R2AI_REORDER"):
+        d = reorder(d)
     write_zip(sys.argv[2], d)
     assert zipfile.ZipFile(sys.argv[2]).read("submission.json") == d
     print("ok", len(d) >> 20, "MB raw")
