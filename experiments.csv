@@ -58,3 +58,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-12 15:00,v51_newdocs3 (5326),v50 + 19k crawled VI docs (crawl3 s4-s7 + local8 part; v5 caches; oof20); R2AI_REORDER LZMA 93.2MB,0.2350,0.4945,0.2368,0.4946,0.3730
 2026-10-13 02:40,v52_newdocs4 (5411),v51 + 16k crawled VI docs (crawl4 s0-s3 + shard8 rest; v6 caches; oof21); REORDER LZMA 97.4MB,0.2352,0.5122,0.2374,0.5116,0.3817
 2026-10-13 05:35,v53_newdocs5 (5417),v52 + 12.6k crawled VI docs (crawl4 s4-s7; v7 caches; oof22); chunk-max 220; REORDER LZMA 98.8MB,0.2376,0.5314,0.2415,0.5289,0.3915
+2026-10-13 17:15,v54_cm260_dict1g (5495),v53 with chunk-max 260 (was 220); LZMA dict 1GB HC4 (v53 json 98.8->94.9MB; ~9GB RAM 3h) -> 97.8MB accepted,0.2376,0.5314,0.2367,0.5353,0.3920
