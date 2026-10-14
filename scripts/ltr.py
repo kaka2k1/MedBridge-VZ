@@ -130,6 +130,12 @@ def build(a):
         X["ceftw_rank"] = X.groupby("qid").ceftw_s.rank(ascending=False).fillna(MISS)
         if "ceft_s" in X:
             X["ceft_max"] = X[["ceft_s", "ceftw_s"]].max(axis=1)
+    if a.rr5:   # cross-encoder fine-tune lại trên TOÀN BỘ nhãn (kaggle_ce2/, fold như LTR; OOF public)
+        R = pd.read_parquet(a.rr5); R["doc_id"] = R.doc_id.astype(str)
+        rs = dict(zip(zip(R.qid, R.doc_id), R.s))
+        X["ce2_s"] = [rs.get((q, d), np.nan) for q, d in zip(X.qid, X.doc)]
+        X["ce2_rank"] = X.groupby("qid").ce2_s.rank(ascending=False).fillna(MISS)
+        X["ce2_gap"] = X.groupby("qid").ce2_s.transform("max") - X.ce2_s
     if a.rr2:   # cross-encoder trên cửa sổ dense tốt nhất của doc (colab/rerank_win.py)
         R = pd.read_parquet(a.rr2); R["doc_id"] = R.doc_id.astype(str)
         rs = dict(zip(zip(R.qid, R.doc_id), R.s))
@@ -168,6 +174,7 @@ def main():
     ap.add_argument("--out", required=True); ap.add_argument("--rounds", type=int, default=300)
     ap.add_argument("--gnft", default="", help="parquet (qid, doc_id, s) GreenNode fine-tune theo fold")
     ap.add_argument("--rr4", default="", help="parquet cross-encoder fine-tune theo cửa sổ")
+    ap.add_argument("--rr5", default="", help="parquet cross-encoder fine-tune lại trên toàn bộ nhãn (kaggle_ce2)")
     ap.add_argument("--rr3", default="", help="parquet (qid, doc_id, s) cross-encoder fine-tune theo fold")
     ap.add_argument("--rr2", default="", help="parquet (qid, doc_id, s) cross-encoder theo cửa sổ")
     ap.add_argument("--rr", default="", help="parquet (qid, doc_id, s) điểm cross-encoder")
