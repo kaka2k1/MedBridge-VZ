@@ -211,7 +211,7 @@ def main():
     if a.xq:   # 22% cặp dương có doc cũng là gold của câu khác → sim(câu, câu khác có doc này là gold/âm)
         QE = np.load(f"{a.xq}/e5_queries.npy").astype(np.float32); QE /= np.linalg.norm(QE, axis=1, keepdims=True)
         qix = {int(q): i for i, q in enumerate(json.load(open(f"{a.xq}/e5_qids.json")))}; QQ = QE @ QE.T
-        feats += ["xq_pos", "xq_cnt", "xq_neg"]
+        feats += ["xq_pos", "xq_cnt", "xq_neg", "xq_dmax", "xq_d5"]
 
     def xq_set(trainq):   # nhãn chỉ của câu trong trainq → gán X.xq_* tại chỗ
         P, N = collections.defaultdict(list), collections.defaultdict(list)
@@ -223,6 +223,19 @@ def main():
             i = qix[q]; p = [j for j in P.get(d, ()) if j != i]; n = [j for j in N.get(d, ()) if j != i]
             xp.append(float(QQ[i, p].max()) if p else 0.0); xc.append(len(p)); xn.append(float(QQ[i, n].max()) if n else 0.0)
         X["xq_pos"], X["xq_cnt"], X["xq_neg"] = xp, xc, xn
+        # lan truyền nhãn qua embedding: max/top5 của sim(q,q')·cos(d,d') với d' là gold của 20 câu train gần nhất (≠ q)
+        tq = np.array(sorted(qix[q] for q in trainq)); inv = {qix[q]: q for q in qix}
+        dm, d5 = np.zeros(len(X)), np.zeros(len(X))
+        for q, g in X.groupby("qid"):
+            i = qix[q]; nb = tq[tq != i]; nb = nb[np.argsort(-QQ[i, nb])[:20]]
+            G = [(QQ[i, j], d) for j in nb for d in pos[inv[j]] if d in emb]
+            if not G:
+                continue
+            w = np.array([x for x, _ in G], np.float32); E = np.stack([emb[d] for _, d in G])
+            V = np.stack([emb[d] if d in emb else np.zeros(E.shape[1], np.float32) for d in g.doc])
+            S = (V @ E.T) * w; ix = X.index.get_indexer(g.index)
+            dm[ix] = S.max(1); d5[ix] = -np.sort(-S, 1)[:, :5].mean(1)
+        X["xq_dmax"], X["xq_d5"] = dm, d5
     params = dict(objective="binary", learning_rate=0.05, num_leaves=31, min_data_in_leaf=100, feature_fraction=0.8,
                   bagging_fraction=0.8, bagging_freq=1, verbose=-1)
     params.update(json.loads(os.environ.get("R2AI_LTR_PARAMS", "{}")))   # vd. '{"num_leaves": 63, "learning_rate": 0.03}'
