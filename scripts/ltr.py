@@ -192,6 +192,7 @@ def main():
     ap.add_argument("--seeds", type=int, default=1, help="số model LightGBM trung bình (bagging)")
     ap.add_argument("--objective", default="binary", choices=["binary", "lambdarank"])
     ap.add_argument("--xcache", default="", help="pickle đặc trưng (X, emb) để thử siêu tham số nhanh")
+    ap.add_argument("--xq", default="", help="thư mục e5 (e5_queries.npy/e5_qids.json): đặc trưng doc là gold của câu TƯƠNG TỰ khác (nhãn chỉ từ câu train của fold)")
     ap.add_argument("--stages", type=int, default=1, help=">1: thêm PRF theo điểm LTR vòng trước")
     a = ap.parse_args()
     import os
@@ -206,7 +207,22 @@ def main():
     # tiên nghiệm tên miền: tính trong từng fold (chỉ từ câu train) để tránh rò rỉ
     X["lab"] = [d in seen.get(q, ()) for q, d in zip(X.qid, X.doc)]
     X["y"] = [int(d in pos.get(q, ())) for q, d in zip(X.qid, X.doc)]
-    feats = [c for c in X.columns if c not in ("qid", "doc", "dom", "lab", "y")] + ["dom_rate"]
+    feats = [c for c in X.columns if c not in ("qid", "doc", "dom", "lab", "y") and not c.startswith("xq_")] + ["dom_rate"]
+    if a.xq:   # 22% cặp dương có doc cũng là gold của câu khác → sim(câu, câu khác có doc này là gold/âm)
+        QE = np.load(f"{a.xq}/e5_queries.npy").astype(np.float32); QE /= np.linalg.norm(QE, axis=1, keepdims=True)
+        qix = {int(q): i for i, q in enumerate(json.load(open(f"{a.xq}/e5_qids.json")))}; QQ = QE @ QE.T
+        feats += ["xq_pos", "xq_cnt", "xq_neg"]
+
+    def xq_set(trainq):   # nhãn chỉ của câu trong trainq → gán X.xq_* tại chỗ
+        P, N = collections.defaultdict(list), collections.defaultdict(list)
+        for q in trainq:
+            for d in seen.get(q, ()):
+                (P if d in pos[q] else N)[d].append(qix[q])
+        xp, xc, xn = [], [], []
+        for q, d in zip(X.qid, X.doc):
+            i = qix[q]; p = [j for j in P.get(d, ()) if j != i]; n = [j for j in N.get(d, ()) if j != i]
+            xp.append(float(QQ[i, p].max()) if p else 0.0); xc.append(len(p)); xn.append(float(QQ[i, n].max()) if n else 0.0)
+        X["xq_pos"], X["xq_cnt"], X["xq_neg"] = xp, xc, xn
     params = dict(objective="binary", learning_rate=0.05, num_leaves=31, min_data_in_leaf=100, feature_fraction=0.8,
                   bagging_fraction=0.8, bagging_freq=1, verbose=-1)
     params.update(json.loads(os.environ.get("R2AI_LTR_PARAMS", "{}")))   # vd. '{"num_leaves": 63, "learning_rate": 0.03}'
@@ -243,12 +259,16 @@ def main():
         cv = []
         for k in range(5):
             te = X.qid.isin(folds[k]) & X.lab; tr = ~X.qid.isin(folds[k]) & X.lab
+            if a.xq:
+                xq_set(set(X[tr].qid))
             dr = dom_rate(X[tr]); Xk = X.assign(dom_rate=X.dom.map(dr).fillna(0.08))
             m = bag_train(Xk.loc[tr])
             allq = X.qid.isin(folds[k])   # dự đoán out-of-fold cho MỌI ứng viên của câu trong fold (điểm public trung thực)
             cv.append(Xk[allq].assign(ltr=m.predict(Xk.loc[allq, feats])))
         cv = pd.concat(cv)
         print("RRF", metrics(cv[cv.lab], "rrf")); print("LTR", metrics(cv[cv.lab], "ltr"), flush=True)
+        if a.xq:
+            xq_set(set(X[X.lab].qid))
         dr = dom_rate(X[X.lab]); X["dom_rate"] = X.dom.map(dr).fillna(0.08)
         m = bag_train(X.loc[X.lab])
         X["ltr"] = m.predict(X[feats])
