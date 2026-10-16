@@ -75,6 +75,17 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 
 **ĐANG CHẠY (15/10 07:51) – chạy lại được sau mất điện:** `data/cache/tmp/logs/run59.sh` (log `run59.log`, trạng thái `data/cache/tmp/state/v59_*.done`): chờ kernel `daophong123/r2ai-ce3` (`kaggle_ce3/`: CE khởi tạo AITeamVN/Vietnamese_Reranker, max_len 512, toàn nhãn, ~8h) → tải CHỈ parquet/log (`--file-pattern`, file model 1GB làm đứt tải) → `v59_merge.sh` (ce3_v8 + AUC so với ce2) → `ltr.py ... --rr5 ce2_v8 --rr6 ce3_v8 --stages 1` (oof27; mỗi vòng LTR ~4h20, vòng 2 không giúp) → nộp nếu AUC ≥ .8570 (v57 vòng 1 = .8557). Khởi chạy lại: `KAGGLE_API_TOKEN=<token daophong123> setsid nohup bash data/cache/tmp/logs/run59.sh >> data/cache/tmp/logs/run59.log 2>&1 < /dev/null &`.
 
+## KẾ HOẠCH VÒNG PRIVATE (chuẩn bị 16/10)
+
+- **Phase 45 "Kiểm thử riêng", task 51**: 01/11 07:00 → 04/11 07:00 (GMT+7) – hệ thống đóng 07:00, KHÔNG phải 23:59. **Chỉ 5 bài tổng**. Chấm 600 câu còn lại của CÙNG file 1200 câu ⇒ các zip hiện tại đã chứa dự đoán private.
+- **Bài đã đóng băng** (`submissions/private/`, SHA256 trong `SHA256SUMS`, sao lưu Kaggle `daophong123/r2ai-private-backup`):
+  - **P1 = `P1_v62.zip`** (= v62, public 0.4083) – NỘP ĐẦU TIÊN, sáng 01/11 ngay sau 07:00.
+  - **P2 = `P2_oof32.zip`** (v62 + LTR thêm nhãn thu hoạch đợt 2; public OOF phẳng nhưng model cho câu private học nhiều nhãn hơn) – dự phòng/bài thứ 2.
+- **Nộp:** `bash scripts/private_submit.sh submissions/private/P1_v62.zip` (phase 45; thẳng bằng curl ×2 rồi relay; kiểm SHA256; không nộp lại nếu đã có `submitted id`). Upload thẳng mất 6–41 phút tuỳ mạng ⇒ đừng để sát hạn.
+- **Đã kiểm (16/10):** phần private của v62: đủ 600 câu, 0 câu rỗng, 0 doc trùng, 3000/3000 chunk mẫu trích nguyên văn, doc/câu 142 (public 147). Lệch đặc trưng public(OOF)↔private(model toàn nhãn) < 0.15 SD, Σp LTR 39.3 vs 41.1, p top-1 .595 vs .594 ⇒ không lệch phân phối đáng kể.
+- **Nếu BTC đổi bộ câu hỏi private** (khác 1200 câu hiện có): phải chạy lại toàn pipeline cho câu mới – báo ngay.
+- **Còn lại 3 lượt:** để dành cho bài cải tiến (vd ce2 nhiều seed) chỉ khi f2sim public tăng rõ; nếu private hiện điểm, so P1/P2 rồi quyết.
+
 **BÀI TỐT NHẤT (16/10 10:20): v62 = 0.4083** (ID 5792, +0.0026 so với v57) = nhãn thu hoạch v60 + ce2b (`kaggle_ce2b/`) + `ltr.py --xq data/cache/e5_v8` chạy trên Kaggle CPU (`kaggle_ltrx/`, oof31 → `data/cache/ltrx4_out/ltr_order_oof31.json`) → fuse chunk-max 240 → 94.4MB. Chuỗi: `data/cache/tmp/logs/run62.sh`. f2sim dự báo đúng chiều (+.0027 offline → +.0026 LB). **Nộp:** relay Kaggle lỗi ("Dataset creation error: slugs and hashlink are all null", treo 1h/lần) → nộp thẳng `R2AI_CURL=1 scripts/submit_api.py <zip> --wait` (90MB trong 350s). Harvest đợt 2 (v63_harvest, ID 5820, 16/10): +57.5k cặp nhưng chỉ +667 dương (đợt 1: +1.224); LTR oof32 f2sim .39944 < oof31 .39972 → KHÔNG giúp, dừng vòng thu hoạch (lợi ích giảm nhanh).
 
 **v60_harvest = 0.1469 (ID 5747, 15/10 21:40) – bài THU HOẠCH NHÃN, điểm thấp là chủ đích:** docs top-450 → docs R .553→**.647** (đuôi chưa thấy có ~5–6 gold/câu, pos-rate ~2–3%); chunks câu public = 100 doc CHƯA THẤY/câu → **+60k cặp nhãn (+1.224 dương), tổng 305.913 cặp / 25.862 dương**. `scripts/probe_harvest.py`. Nộp qua relay: lần 1 đứt HTTP/2, lần 2 KHỚP SAI KÍCH THƯỚC vẫn exit 0 ở `| tail` → PHẢI `set -o pipefail`. Tiếp: LTR oof30 (Kaggle CPU, nhãn mới) → v61; ce2 train lại (+25% nhãn, daophong123 còn ~10h GPU) → v62; cân nhắc harvest đợt 2 ở biên mới.
