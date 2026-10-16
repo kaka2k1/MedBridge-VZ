@@ -13,6 +13,6 @@ subprocess.run("pip install -q pandas==3.0.6 numpy==2.5.3 lightgbm==4.7.0 2>&1 |
 subprocess.run("pip list 2>/dev/null | grep -iE '^(pandas|lightgbm|numpy) '", shell=True)
 env = dict(os.environ, R2AI_LTR_PARAMS='{"learning_rate":0.03,"lambda_l2":10,"min_data_in_leaf":50}')
 r = subprocess.run([sys.executable, "scripts/ltr.py", "--preds", "x", "--scores", "x", "--dense", "x", "--xq", "e5", "--xcache", f"{I}/x.pkl",
-                    "--rounds", "700", "--stages", "1", "--seeds", "5", "--out", "ltr_order_oof30.json"], cwd=W, env=env)
+                    "--rounds", "700", "--stages", "1", "--seeds", "5", "--out", "ltr_order_oof32.json"], cwd=W, env=env)
 shutil.rmtree(f"{W}/scripts"); shutil.rmtree(f"{W}/data"); shutil.rmtree(f"{W}/e5")
 print("EXIT", r.returncode)
