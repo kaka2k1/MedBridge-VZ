@@ -27,7 +27,7 @@ def main():
     for f in glob.glob("data/docs/corpus-*.parquet"):
         have |= set(map(str, pq.read_table(f, columns=["doc_id"]).column("doc_id").to_pylist()))
     parts = []
-    for f in sorted(glob.glob("data/cache/crawl*/**/docs_out/*.parquet", recursive=True)):
+    for f in sorted(glob.glob("data/cache/crawl*/**/docs_out/*.parquet", recursive=True) + glob.glob("data/cache/pharmacity/part-*.parquet")):   # + Pharmacity cào lại (BTC 19/10)
         t = pd.read_parquet(f, columns=["doc_id", "source", "lang", "url", "title", "text"])
         parts.append(t[t.lang == "vi"])
     d = pd.concat(parts).assign(doc_id=lambda x: x.doc_id.astype(str)).drop_duplicates("doc_id")

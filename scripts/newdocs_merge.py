@@ -18,6 +18,8 @@ def paths(v):   # v=2: bản gốc trước khi gộp doc mới; v>=3: sau mỗi
     return {"d1": f"data/cache/dense_gn_top300_v{v}.json", "d2": f"data/cache/dense_bgem3_chunks_v{v}.json",
             "d3": f"data/cache/dense_chunks_top_v{v}.json", "e5": f"data/cache/e5_v{v}", "rr": lambda n: f"data/cache/{n}_v{v}.parquet"}
 RR = {"rr": "rr_bge_all", "rr2": "rr_win", "rr3": "ce_ft", "rr4": "ce_ftwin", "gnft": "gnft"}
+if os.environ.get("R2AI_MERGE_RR5"):   # ce2 (v62 dùng ce2b_v8) – cột rr5 từ kernel (model ce2_all)
+    RR["rr5"] = os.environ["R2AI_MERGE_RR5"]
 
 
 def main():
@@ -59,6 +61,8 @@ def main():
     # 5) điểm cross-encoder / GN fine-tune cho cặp (câu, doc mới) – model train trên tất cả nhãn (kaggle_savemodels)
     P = pd.read_parquet(f"{K}/pairs.parquet"); P["doc_id"] = P.doc_id.astype(str)
     for col, name in RR.items():
+        if col not in P.columns:
+            print("thiếu cột", col, "– bỏ qua"); continue
         R = pd.read_parquet(OLD["rr"](name))[["qid", "doc_id", "s"]]; R["doc_id"] = R.doc_id.astype(str)
         pd.concat([R, P[["qid", "doc_id"]].assign(s=P[col])]).drop_duplicates(["qid", "doc_id"]).to_parquet(NEW["rr"](name), index=False)
     print("pairs", len(P))

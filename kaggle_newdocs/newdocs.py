@@ -133,6 +133,9 @@ def ft_score(path, texts):
 
 
 P["rr3"] = ft_score(f"{MD}/ce_doc", P.doc.tolist()); P["rr4"] = ft_score(f"{MD}/ce_win", P.win.tolist()); log("ft ce done")
+_ce2 = glob.glob("/kaggle/input/**/ce2_all/config.json", recursive=True)   # ce2 train trên tất cả nhãn (kernel r2ai-ce2) → rr5
+if _ce2:
+    P["rr5"] = ft_score(os.path.dirname(_ce2[0]), P.doc.tolist()); log("ce2 done")
 m = SentenceTransformer(f"{MD}/gn", device="cuda"); m.max_seq_length = 512
 De = m.encode(P.doc.str[:1700].tolist(), normalize_embeddings=True, batch_size=64, show_progress_bar=False)
 Qe = dict(zip(QIDS, m.encode(QT, normalize_embeddings=True, batch_size=64)))
