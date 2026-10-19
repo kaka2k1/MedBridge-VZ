@@ -77,6 +77,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 
 **⚠️ LEADERBOARD (19/10): bảng chỉ hiện bài ĐƯỢC CHỌN đưa lên** – đến 19/10 tài khoản aichickenteam vẫn hiện bài 06/10 (0.2326, hạng 9) dù v62 = 0.4083. Đưa bài lên: `s.post(f"{BASE}/api/submissions/<id>/submission_leaderboard_connection/")` (session của submit_api) → v62 (ID 5792) giờ HẠNG 1 (0.4083 > BM25 baseline .3764 > Bien Tran Ngoc .3502). Mỗi khi có bài tốt hơn phải đưa lên lại; VÒNG PRIVATE cũng vậy – sau khi nộp, đưa bài muốn tính lên leaderboard phase 45.
 
+**ĐANG CHẠY (19/10 13:10) – chạy lại được:** `run64.sh` (log `run64.log`, state `v64_*.done`): ce2 thêm 2 seed – `kakaoffical/r2ai-ce2c` (seed 1) + `daophong123/r2ai-ce2d` (seed 2), cùng data `r2ai-ce2bdata` → `v64_merge.sh` trung bình ce2b/c/d → `ce2avg_v8.parquet` → xcache `x_v8_64.pkl` → LTR Kaggle CPU oof33 → CHỈ nén+nộp nếu f2sim(oof33) ≥ f2sim(oof31) + 0.0005; nộp thẳng curl, KHÔNG tự đưa lên leaderboard. Khởi chạy lại: `KAGGLE_API_TOKEN=<daophong123> setsid nohup bash data/cache/tmp/logs/run64.sh >> data/cache/tmp/logs/run64.log 2>&1 < /dev/null &`. Người dùng 19/10: có đội ~0.42 nhưng ẨN điểm (không lên bảng).
+
 ## KẾ HOẠCH VÒNG PRIVATE (chuẩn bị 16/10)
 
 - **Phase 45 "Kiểm thử riêng", task 51**: 01/11 07:00 → 04/11 07:00 (GMT+7) – hệ thống đóng 07:00, KHÔNG phải 23:59. **Chỉ 5 bài tổng**. Chấm 600 câu còn lại của CÙNG file 1200 câu ⇒ các zip hiện tại đã chứa dự đoán private.
