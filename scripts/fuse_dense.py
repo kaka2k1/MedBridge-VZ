@@ -40,9 +40,10 @@ def fused_lists(a):
         for i, x in enumerate(dense2.get(str(qid), [])[:a.dense_k]):   # [score, doc] hoặc [score, doc, text]
             rr[str(x[1])] = rr.get(str(x[1]), 0) + a.w_dense2 / (a.k + i + 1)
         ch3 = {}
-        for i, (_, d, txt) in enumerate(dense3.get(str(qid), [])[:a.dense_k]):
-            rr[str(d)] = rr.get(str(d), 0) + a.w_dense3 / (a.k + i + 1)
-            ch3[str(d)] = txt
+        for i, x in enumerate(dense3.get(str(qid), [])[:a.dense_k]):   # [score, doc, chunk_text]; vài mục chỉ có [score, doc]
+            d = x[1]; rr[str(d)] = rr.get(str(d), 0) + a.w_dense3 / (a.k + i + 1)
+            if len(x) > 2 and x[2]:
+                ch3[str(d)] = x[2]
         docs = sorted(rr, key=lambda d: -rr[d])
         chm = dict(ch3); chm.update(dict(zip(g.doc, g.text)))     # ưu tiên chunk đã chấm GreenNode từ BM25, sau đó chunk dense-đoạn
         out[int(qid)] = (docs, chm, g.q.iloc[0], plans.get(int(qid)))
