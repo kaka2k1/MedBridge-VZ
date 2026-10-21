@@ -81,6 +81,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 
 **19/10 – cả hai KHÔNG giúp:** (1) ce2 3 seed trung bình (`kaggle_ce2c/`, `kaggle_ce2d/`, `run64.sh`): AUC/câu .7728 vs .7671 nhưng LTR oof33 f2sim .3992 < v62 .3997. (2) **Giả thuyết pooling** (`kaggle_bm25p/` trên Kaggle CPU, 12 cấu hình BM25 toàn kho VI: âm tiết/pyvi, title+text/text/cắt 2000–3000, lucene/robertson, k1/b): top-42 chỉ 13–14% dương đã biết, 57–70% ÂM đã biết (LTR v62: 37% dương) ⇒ baseline BTC (docs P .88) KHÔNG phải BM25 thường trên kho công khai – nhiều khả năng BM25 trên tập doc đã duyệt/gold ⇒ không tái tạo được. Job dài: chạy bằng `systemd-run --user --unit=r2ai-<tên>` (systemd-oomd từng giết cả scope VS Code 19/10 17:10).
 
+**BÀI TỐT NHẤT (21/10 22:40): v70 = 0.4348** (ID 6445, +0.0253 so với v65; docs R .557→.619, chunks R .555→.590) = v65 + doc ZH (bộ 235k của BTC) trộn theo xác suất (`scripts/merge_zh.py --zh data/cache/zh_probs.parquet --zh-scale 0.9 --zh-chars 1800 --chunk-max 200`). Nén trên Kaggle (`scripts/kaggle_zip.sh`), nộp qua relay Kaggle (`submit_api.py --relay`; nộp thẳng tối 21/10 chỉ ~7KB/s). Đóng băng `submissions/private/P4_v70.zip` (+SHA256, sao lưu Kaggle) – **NỘP ĐẦU TIÊN Ở PRIVATE**. Không đưa lên leaderboard.
+
 **21/10 11:02 máy reboot (OOM khi nén LZMA) → NÉN TRÊN KAGGLE từ nay** (yêu cầu người dùng): `scripts/kaggle_zip.sh <tag> <out.zip> <deflate1.zip> ...` (dataset `kakaoffical/r2ai-zipjob`, kernel `kaggle_zipjob/` nén song song, chọn bản lớn nhất < 99.5MB). Kaggle tự giải nén .zip trong dataset → kernel đóng gói lại submission.json. run70.sh / run71.sh đã chuyển sang cách này (unit r2ai-run70, r2ai-run71).
 
 **21/10 sáng:** v70 lần 1 = 104.3MB (chunk ZH nén kém hơn VI) → chạy lại với `--zh-chars 1800 --chunk-max 220/200/180` (`run70.sh`). Cào lại 120ask vòng 2: 4/8 shard được ~7.6k/shard (+30.5k doc), 4 shard (s1,s5,s6,s7) bị chặn sớm → đẩy lại lần 3. `run71.sh` (unit r2ai-run71): chờ 4 shard → gộp toàn bộ ZH → zhfeat lại → zh_ltr (`zh_probs2.parquet`) → merge → nén (chờ không có LZMA khác chạy: ~9GB RAM/bản) → nộp sau v70.
@@ -102,7 +104,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 - **Phase 45 "Kiểm thử riêng", task 51**: 01/11 07:00 → 04/11 07:00 (GMT+7) – hệ thống đóng 07:00, KHÔNG phải 23:59. **Chỉ 5 bài tổng**. Chấm 600 câu còn lại của CÙNG file 1200 câu ⇒ các zip hiện tại đã chứa dự đoán private.
 - **Bài đã đóng băng** (`submissions/private/`, SHA256 trong `SHA256SUMS`, sao lưu Kaggle `daophong123/r2ai-private-backup`):
   - **P1 = `P1_v62.zip`** (= v62, public 0.4083) – NỘP ĐẦU TIÊN, sáng 01/11 ngay sau 07:00.
-  - **P3 = `P3_v65.zip`** (= v65, public 0.4095, có Pharmacity) – **NÊN NỘP ĐẦU TIÊN thay P1**.
+  - **P4 = `P4_v70.zip`** (= v70, public 0.4348, + ZH) – **NỘP ĐẦU TIÊN**.
+  - **P3 = `P3_v65.zip`** (= v65, public 0.4095, có Pharmacity).
   - **P2 = `P2_oof32.zip`** (v62 + LTR thêm nhãn thu hoạch đợt 2; public OOF phẳng nhưng model cho câu private học nhiều nhãn hơn) – dự phòng/bài thứ 2.
 - **Nộp:** `bash scripts/private_submit.sh submissions/private/P1_v62.zip` (phase 45; thẳng bằng curl ×2 rồi relay; kiểm SHA256; không nộp lại nếu đã có `submitted id`). Upload thẳng mất 6–41 phút tuỳ mạng ⇒ đừng để sát hạn.
 - **Đã kiểm (16/10):** phần private của v62: đủ 600 câu, 0 câu rỗng, 0 doc trùng, 3000/3000 chunk mẫu trích nguyên văn, doc/câu 142 (public 147). Lệch đặc trưng public(OOF)↔private(model toàn nhãn) < 0.15 SD, Σp LTR 39.3 vs 41.1, p top-1 .595 vs .594 ⇒ không lệch phân phối đáng kể.

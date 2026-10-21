@@ -41,7 +41,7 @@ def submit(s, path, phase):
         t0 = time.time()
         if os.environ.get("R2AI_CURL"):   # curl (TLS stack khác, tự retry ở tầng TCP tốt hơn)
             import subprocess
-            rc = subprocess.run(["curl", "-sS", "-f", "-T", path, "-H", "Content-Type: application/zip", "-o", "/dev/null",
+            rc = subprocess.run(["curl", "-sS", "-f", "--http1.1", "--retry", "3", "--retry-all-errors", "-T", path, "-H", "Content-Type: application/zip", "-o", "/dev/null",
                                  "-w", "%{http_code} %{speed_upload}", url], capture_output=True, text=True)
             if rc.returncode == 0:
                 print("curl upload ok", rc.stdout, f"{time.time() - t0:.0f}s", flush=True); break
