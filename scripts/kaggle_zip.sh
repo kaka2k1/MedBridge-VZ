@@ -11,7 +11,7 @@ if [ "$1" != "--skip-push" ]; then
   rm -f $D/*.zip; for f in "$@"; do ln -f "$f" $D/; done; cp scripts/zip_lzma.py $D/
   $K datasets version -p $D -m "$TAG" 2>&1 | tail -1 | grep -v "not found" || $K datasets create -p $D 2>&1 | tail -1; sleep 90
   until $K datasets status $OW/r2ai-zipjob 2>/dev/null | grep -q ready; do sleep 30; done
-  $K kernels push -p $KD 2>&1 | tail -1; sleep 120
+  $K kernels push -p $KD 2>&1 | tail -1; touch data/cache/tmp/state/${TAG}_pushed.done; sleep 120
 fi
 until s=$($K kernels status $OW/r2ai-zipjob-run 2>&1); echo "$s" | grep -qE "COMPLETE|ERROR|CANCEL"; do sleep 120; done; echo "$s"
 O=data/cache/zipjob_out/$TAG; rm -rf $O; mkdir -p $O
