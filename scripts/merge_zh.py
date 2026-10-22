@@ -13,6 +13,8 @@ ap.add_argument("--base", required=True); ap.add_argument("--order", required=Tr
 ap.add_argument("--ef2", type=float, default=1.9); ap.add_argument("--lo", type=int, default=30); ap.add_argument("--hi", type=int, default=300)
 ap.add_argument("--chunk-max", type=int, default=240); ap.add_argument("--zh-chars", type=int, default=3000); ap.add_argument("--zh-top", type=int, default=60)
 ap.add_argument("--zh-scale", type=float, default=1.0, help="nhân xác suất ZH (hiệu chỉnh)"); ap.add_argument("--sim", action="store_true")
+ap.add_argument("--vi-fill", type=int, default=0, help=">0: doc VI được chọn mà zip gốc KHÔNG có chunk → chunk = cửa sổ d3 (hoặc đầu doc) nới tới N ký tự")
+ap.add_argument("--d3", default="data/cache/dense_chunks_top_v9.json")
 a = ap.parse_args()
 z = zipfile.ZipFile(a.base); B = {r["id"]: r for r in json.loads(z.read(z.namelist()[0]))}
 od = json.load(open(a.order + ".json")); pr = json.load(open(a.order + "_probs.json"))
@@ -24,6 +26,19 @@ if not a.sim:
     D = pd.read_parquet("data/cache/kg_zhdocs/zh_docs.parquet", columns=["doc_id", "text"]); D["doc_id"] = D.doc_id.astype(str)
     TX = dict(zip(D.doc_id, D.text.fillna("")))
 pos, seen = labels()
+VIW, VTX = {}, {}
+if a.vi_fill and not a.sim:   # văn bản VI cho doc thiếu chunk
+    import glob, pyarrow.parquet as pq
+    sys.path.insert(0, "scripts"); from fuse_dense import expand
+    need_vi = set()
+    for q, b in B.items():
+        have = {str(c["doc_id"]) for c in b["relevant_chunks"]}
+        need_vi |= {d for d in od.get(str(q), [])[:320] if d not in have}
+    for f in sorted(glob.glob("data/docs/corpus-*.parquet")):
+        t = pq.read_table(f, columns=["doc_id", "text"]).to_pandas(); t["doc_id"] = t.doc_id.astype(str); t = t[t.doc_id.isin(need_vi)]
+        VTX.update(zip(t.doc_id, t.text.fillna("")))
+    D3 = json.load(open(a.d3)); VIW = {(int(q), str(x[1])): x[2] for q, v in D3.items() for x in v if len(x) > 2 and x[2]}; del D3
+    print("VI cần bù chunk:", len(need_vi), "có text:", len(VTX), flush=True)
 gold = {int(json.loads(l)["id"]): json.loads(l)["document"]["gold"] for l in open("data/eval/details_6294_v65.jsonl")}
 
 
@@ -34,7 +49,7 @@ def f2(docs, q):
     return 5 * P * R / (4 * P + R) if r else 0.0
 
 
-out, s0, s1, nzh = [], [], [], []
+out, s0, s1, nzh, nfill = [], [], [], [], []
 for q in sorted(B):
     b = B[q]; vi = [(d, p, "vi") for d, p in zip(od.get(str(q), []), pr.get(str(q), []))]
     zg = ZG.get(q)
@@ -50,6 +65,8 @@ for q in sorted(B):
     ch = []
     for d, _, lang in sel:
         t = vch.get(d) if lang == "vi" else TX.get(d, "")[:a.zh_chars]
+        if not t and lang == "vi" and a.vi_fill and d in VTX:
+            w = VIW.get((q, d)) or VTX[d][:1600]; t = expand(VTX[d], w, a.vi_fill) if len(w) < a.vi_fill else w[:a.vi_fill]; nfill.append(1)
         if t: ch.append({"doc_id": int(d), "chunk_text": t})
         if len(ch) >= a.chunk_max: break
     out.append({"id": q, "relevant_docs": [int(x[0]) for x in sel], "relevant_chunks": ch})
@@ -57,4 +74,4 @@ print(f"F2 docs mô phỏng (public, nhãn hiện có): gốc {np.mean(s0):.4f} 
 if not a.sim and a.out:
     with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zz:
         zz.writestr("submission.json", json.dumps(out, ensure_ascii=False))
-    print("wrote", a.out, len(out), "| chunk ZH:", sum(1 for r in out for c in r["relevant_chunks"] if str(c["doc_id"]) in need))
+    print("chunk VI bù:", len(nfill)); print("wrote", a.out, len(out), "| chunk ZH:", sum(1 for r in out for c in r["relevant_chunks"] if str(c["doc_id"]) in need))
