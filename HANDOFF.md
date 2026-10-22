@@ -81,6 +81,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 
 **19/10 – cả hai KHÔNG giúp:** (1) ce2 3 seed trung bình (`kaggle_ce2c/`, `kaggle_ce2d/`, `run64.sh`): AUC/câu .7728 vs .7671 nhưng LTR oof33 f2sim .3992 < v62 .3997. (2) **Giả thuyết pooling** (`kaggle_bm25p/` trên Kaggle CPU, 12 cấu hình BM25 toàn kho VI: âm tiết/pyvi, title+text/text/cắt 2000–3000, lucene/robertson, k1/b): top-42 chỉ 13–14% dương đã biết, 57–70% ÂM đã biết (LTR v62: 37% dương) ⇒ baseline BTC (docs P .88) KHÔNG phải BM25 thường trên kho công khai – nhiều khả năng BM25 trên tập doc đã duyệt/gold ⇒ không tái tạo được. Job dài: chạy bằng `systemd-run --user --unit=r2ai-<tên>` (systemd-oomd từng giết cả scope VS Code 19/10 17:10).
 
+**BÀI TỐT NHẤT (22/10 23:55): v74 = 0.4486** (ID 6575) = v65 + ZH 222.3k doc + CE ZH (`zh_probs6.parquet`). Đóng băng `submissions/private/P6_v74.zip` – **NỘP ĐẦU TIÊN Ở PRIVATE** (trước P5_v71). Relay PUT thành công nhưng đăng ký bị ngắt → hoàn tất bằng `submit_api.finish(s, <dataset key>, 44)` (key tra ở `/api/datasets/`). scoring_result có thể xuất hiện muộn → `scripts/fetch_details.py <sid> <tên>`. v75 (câu hỏi dịch ZH, Qwen2.5-7B; zh_ltr AUC .784) nén LOCAL được (MemoryMax 9G, dict 768MB, peak 7.3GB, 94.9MB) → đang relay. v73 relay lỗi Kaggle 'slugs and hashlink are all null' → nộp lại sau.
+
 **ĐANG CHẠY thêm (22/10 13:30):** `run74.sh` (unit r2ai-run74): ZH phủ ~95% = 120ask vòng 4 (4 shard kakaoffical) + 39.net bản mobile (`scripts/fetch_39m.py`: desktop dính captcha, UA điện thoại → m.39.net/<sub>/a_<id>.html, 11.2k doc) → zhfeat (zhfeat3_out) → zh_ltr3 (+CE ZH nếu có) → zh_probs6 → merge → nén Kaggle kakaoffical (sau v72) → relay. Giới hạn 200 chunk/câu (zip <100MB) cắt 471/1200 câu (doc thiếu chunk ở vị trí >200; chunk 151–200 vẫn đúng 16.7%) – muốn thêm phải rút ngắn chunk VI (8000) – để sau. Đội 'ongthomiu' public 0.7346 với docs precision 0.9947 = nộp đáp án public dò từ details (không có tác dụng ở private) – người dùng chọn tiếp tục cải thiện hệ thật.
 
 **ĐANG CHẠY (22/10 10:20):** `run72.sh` (unit r2ai-run72): v72 = v65 + ZH `zh_probs4.parquet` (zh_ltr3 trên 5.7k dương ZH; OOF AUC .748) → nén Kaggle kakaoffical → relay. `run73.sh` (unit r2ai-run73): chờ `daophong123/r2ai-cezh` (CE ZH) → `cezh_v1.parquet` → `zh_ltr3.py --extra` → `zh_probs5` → merge → nén Kaggle daophong123 → relay (chờ relay rảnh). Khởi chạy lại run73 cần `--setenv=KAGGLE_API_TOKEN=<daophong123>`.
@@ -112,7 +114,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 - **Phase 45 "Kiểm thử riêng", task 51**: 01/11 07:00 → 04/11 07:00 (GMT+7) – hệ thống đóng 07:00, KHÔNG phải 23:59. **Chỉ 5 bài tổng**. Chấm 600 câu còn lại của CÙNG file 1200 câu ⇒ các zip hiện tại đã chứa dự đoán private.
 - **Bài đã đóng băng** (`submissions/private/`, SHA256 trong `SHA256SUMS`, sao lưu Kaggle `daophong123/r2ai-private-backup`):
   - **P1 = `P1_v62.zip`** (= v62, public 0.4083) – NỘP ĐẦU TIÊN, sáng 01/11 ngay sau 07:00.
-  - **P5 = `P5_v71.zip`** (= v71, public 0.4434) – **NỘP ĐẦU TIÊN**.
+  - **P6 = `P6_v74.zip`** (= v74, public 0.4486) – **NỘP ĐẦU TIÊN**.
+  - **P5 = `P5_v71.zip`** (= v71, public 0.4434).
   - **P4 = `P4_v70.zip`** (= v70, public 0.4348, + ZH).
   - **P3 = `P3_v65.zip`** (= v65, public 0.4095, có Pharmacity).
   - **P2 = `P2_oof32.zip`** (v62 + LTR thêm nhãn thu hoạch đợt 2; public OOF phẳng nhưng model cho câu private học nhiều nhãn hơn) – dự phòng/bài thứ 2.
