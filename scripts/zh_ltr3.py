@@ -13,10 +13,13 @@ a = ap.parse_args()
 Q = pd.read_parquet("data/ViBioMIR/query.parquet"); QIDS = [int(x) for x in Q.id]; qi = {q: i for i, q in enumerate(QIDS)}
 QE = np.load("data/cache/zh_qemb_bgem3.npy").astype(np.float16); E = np.load(f"{a.feat}/zh_emb.npy"); ids = json.load(open(f"{a.feat}/zh_ids.json")); di = {d: j for j, d in enumerate(ids)}
 S = (QE @ E.T).astype(np.float32); colmax = S.max(0); col2 = np.partition(S, -2, axis=0)[-2]
-qr = np.load("data/cache/zh_qrank.npy") if np.load("data/cache/zh_qrank.npy", mmap_mode="r").shape == S.shape else None
+import os
+QRF = f"{a.feat}/zh_qrank.npy"   # cache theo bộ đặc trưng (kích thước khác nhau giữa các lần cào)
+qr = np.load(QRF) if os.path.exists(QRF) and np.load(QRF, mmap_mode="r").shape == S.shape else None
 if qr is None:
     qr = np.empty(S.shape, np.int16)
     for j in range(0, S.shape[1], 20000): qr[:, j:j + 20000] = np.argsort(np.argsort(-S[:, j:j + 20000], 0), 0) + 1
+    np.save(QRF, qr)
 rows = []
 for q in QIDS:
     r = qi[q]; top = np.argpartition(-S[r], a.top)[:a.top]
