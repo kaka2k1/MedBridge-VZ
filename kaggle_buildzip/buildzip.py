@@ -13,7 +13,7 @@ jobs = json.load(open(f"{I}/jobs.json")); t0 = time.time(); log = lambda *x: pri
 order = sorted(glob.glob(f"{R}/ltr_order_*_probs.json"))[0].replace("_probs.json", "")
 for j in jobs:
     r = subprocess.run([sys.executable, "scripts/merge_zh.py", "--base", "base.zip", "--order", order, "--zh", f"{I}/{j['zh']}", "--zh-scale", str(j["scale"]),
-                        "--zh-chars", str(j["zh_chars"]), "--chunk-max", str(j["cm"]), "--out", f"/kaggle/tmp/{j['name']}_d.zip"], cwd=R, capture_output=True, text=True)
+                        "--zh-chars", str(j["zh_chars"]), "--chunk-max", str(j["cm"])] + (["--vi-chars", str(j["vi_chars"])] if j.get("vi_chars") else []) + ["--out", f"/kaggle/tmp/{j['name']}_d.zip"], cwd=R, capture_output=True, text=True)
     log(j["name"], r.stdout.strip()[-300:], r.stderr.strip()[-300:])
 env = dict(os.environ, R2AI_REORDER="1", R2AI_LZMA_DICT_MB="1024", R2AI_LZMA_HC4="1")
 pend = [j["name"] for j in jobs if os.path.exists(f"/kaggle/tmp/{j['name']}_d.zip")]

@@ -15,6 +15,7 @@ ap.add_argument("--chunk-max", type=int, default=240); ap.add_argument("--zh-cha
 ap.add_argument("--zh-scale", type=float, default=1.0, help="nhân xác suất ZH (hiệu chỉnh)"); ap.add_argument("--sim", action="store_true")
 ap.add_argument("--vi-fill", type=int, default=0, help=">0: doc VI được chọn mà zip gốc KHÔNG có chunk → chunk = cửa sổ d3 (hoặc đầu doc) nới tới N ký tự")
 ap.add_argument("--d3", default="data/cache/dense_chunks_top_v9.json")
+ap.add_argument("--vi-chars", type=int, default=0, help=">0: cắt chunk VI (nới về sau từ cửa sổ dense, 8000 ký tự) còn N ký tự đầu ⇒ tiết kiệm dung lượng để tăng --chunk-max")
 a = ap.parse_args()
 z = zipfile.ZipFile(a.base); B = {r["id"]: r for r in json.loads(z.read(z.namelist()[0]))}
 od = json.load(open(a.order + ".json")); pr = json.load(open(a.order + "_probs.json"))
@@ -65,6 +66,8 @@ for q in sorted(B):
     ch = []
     for d, _, lang in sel:
         t = vch.get(d) if lang == "vi" else TX.get(d, "")[:a.zh_chars]
+        if t and lang == "vi" and a.vi_chars and len(t) > a.vi_chars:
+            t = t[:a.vi_chars]; sp = t.rfind(" "); t = t[:sp] if sp > a.vi_chars - 50 else t   # cắt ở ranh giới từ
         if not t and lang == "vi" and a.vi_fill and d in VTX:
             w = VIW.get((q, d)) or VTX[d][:1600]; t = expand(VTX[d], w, a.vi_fill) if len(w) < a.vi_fill else w[:a.vi_fill]; nfill.append(1)
         if t: ch.append({"doc_id": int(d), "chunk_text": t})
