@@ -4,6 +4,7 @@
 Tài khoản đọc từ .r2ai_cred (R2AI_USER / R2AI_PASS). Kết quả chi tiết lưu data/eval/details_<id>_<tên>.jsonl.
 """
 import argparse
+import json
 import io
 import os
 import re
@@ -117,22 +118,22 @@ if __name__ == "__main__":
         key, url = prepare(s, a.zip)
         rd = "data/cache/relay_ds"; shutil.rmtree(rd, ignore_errors=True); os.makedirs(rd)
         tag = f"sub_{int(time.time())}.bin"; shutil.copy(a.zip, f"{rd}/{tag}"); open(f"{rd}/url.txt", "w").write(url)
-        json_meta = '{"title": "r2ai-submit-relay", "id": "kakaoffical/r2ai-submit-relay", "licenses": [{"name": "other"}]}'
-        open(f"{rd}/dataset-metadata.json", "w").write(json_meta)
-        kg = ".venv/bin/kaggle"
-        r = subprocess.run([kg, "datasets", "version", "-p", rd, "-m", "relay"], capture_output=True, text=True)
-        if "not found" in (r.stdout + r.stderr).lower() or r.returncode:
-            subprocess.run([kg, "datasets", "create", "-p", rd], check=True)
+        # 22/10: "datasets version" của r2ai-submit-relay lỗi Kaggle ("slugs and hashlink are all null") ⇒ mỗi lần tạo dataset MỚI, trỏ kernel vào nó
+        slug = f"r2ai-relay-{int(time.time())}"; DS = f"kakaoffical/{slug}"
+        open(f"{rd}/dataset-metadata.json", "w").write('{"title": "%s", "id": "%s", "licenses": [{"name": "other"}]}' % (slug, DS))
+        kg = ".venv/bin/kaggle"; env = {k: v for k, v in os.environ.items() if k != "KAGGLE_API_TOKEN"}   # relay luôn ở kakaoffical
+        r = subprocess.run([kg, "datasets", "create", "-p", rd], capture_output=True, text=True, env=env); print(r.stdout.strip()[-160:], r.stderr.strip()[-160:], flush=True)
+        km = json.load(open("kaggle_relay/kernel-metadata.json")); km["dataset_sources"] = [DS]; json.dump(km, open("kaggle_relay/kernel-metadata.json", "w"))
         want = str(os.path.getsize(a.zip))
         for _ in range(180):   # chờ PHIÊN BẢN MỚI: sub.bin đúng dung lượng (status "ready" của bản cũ không đủ – v33 lần 1 bị Failed vì vậy)
-            fl = subprocess.run([kg, "datasets", "files", "kakaoffical/r2ai-submit-relay"], capture_output=True, text=True).stdout
+            fl = subprocess.run([kg, "datasets", "files", DS], capture_output=True, text=True, env=env).stdout
             if any(l.split()[:2] == [tag, want] for l in fl.splitlines()):
                 break
             time.sleep(20)
         else:
             sys.exit("relay dataset not updated")
         for i in range(10):   # 409 Conflict khi dataset mới chưa sẵn sàng -> thử lại
-            r = subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"], capture_output=True, text=True)
+            r = subprocess.run([kg, "kernels", "push", "-p", "kaggle_relay"], capture_output=True, text=True, env=env)
             print(r.stdout.strip()[-200:], flush=True)
             if "successfully" in r.stdout:   # CLI trả 0 cả khi lỗi (vd. "Maximum batch CPU session count") ⇒ kiểm tra chữ
                 break
@@ -141,12 +142,12 @@ if __name__ == "__main__":
             sys.exit("kernel push failed")
         time.sleep(30)
         while True:
-            st = subprocess.run([kg, "kernels", "status", "kakaoffical/r2ai-relay-put"], capture_output=True, text=True).stdout
+            st = subprocess.run([kg, "kernels", "status", "kakaoffical/r2ai-relay-put"], capture_output=True, text=True, env=env).stdout
             if "COMPLETE" in st or "ERROR" in st:
                 break
             time.sleep(15)
         shutil.rmtree("data/cache/relay_out", ignore_errors=True)   # tránh đọc put_result.txt cũ
-        subprocess.run([kg, "kernels", "output", "kakaoffical/r2ai-relay-put", "-p", "data/cache/relay_out"], capture_output=True)
+        subprocess.run([kg, "kernels", "output", "kakaoffical/r2ai-relay-put", "-p", "data/cache/relay_out"], capture_output=True, env=env)
         res = open("data/cache/relay_out/put_result.txt").read() if os.path.exists("data/cache/relay_out/put_result.txt") else st
         print("relay:", res.strip(), flush=True)
         if tag not in res:   # kết quả phải của ĐÚNG lần này (tránh đọc output cũ – v47 lần 1 bị Failed vì vậy)
