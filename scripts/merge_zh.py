@@ -17,6 +17,8 @@ ap.add_argument("--vi-fill", type=int, default=0, help=">0: doc VI được ch�
 ap.add_argument("--d3", default="data/cache/dense_chunks_top_v9.json")
 ap.add_argument("--vi-mode", default="trunc", choices=["trunc", "center", "docstart"], help="trunc: N ký tự đầu chunk gốc (bắt đầu ở cửa sổ dense); center: căn giữa cửa sổ dense (cần --vi-texts); docstart: N ký tự đầu doc")
 ap.add_argument("--vi-texts", default="", help="thư mục corpus-*.parquet (doc_id, text) cho --vi-mode center/docstart")
+ap.add_argument("--vi-dual", type=int, default=0, help=">0: thêm chunk NGẮN N ký tự căn giữa cửa sổ dense cho doc VI (bắt gold ngắn – luật chấm mới 23/10)")
+ap.add_argument("--dual-top", type=int, default=150)
 ap.add_argument("--vi-chars", type=int, default=0, help=">0: cắt chunk VI (nới về sau từ cửa sổ dense, 8000 ký tự) còn N ký tự đầu ⇒ tiết kiệm dung lượng để tăng --chunk-max")
 a = ap.parse_args()
 z = zipfile.ZipFile(a.base); B = {r["id"]: r for r in json.loads(z.read(z.namelist()[0]))}
@@ -53,14 +55,14 @@ def f2(docs, q):
 
 
 VFULL = {}
-if a.vi_texts and a.vi_mode != "trunc" and not a.sim:   # văn bản đầy đủ của doc VI có chunk trong bài gốc
+if a.vi_texts and (a.vi_mode != "trunc" or a.vi_dual) and not a.sim:   # văn bản đầy đủ của doc VI có chunk trong bài gốc
     import glob as _g, pyarrow.parquet as _pq
     needv = {str(c["doc_id"]) for b in B.values() for c in b["relevant_chunks"]}
     for f in sorted(_g.glob(f"{a.vi_texts}/**/corpus-*.parquet", recursive=True)):
         t_ = _pq.read_table(f, columns=["doc_id", "text"]).to_pandas(); t_["doc_id"] = t_.doc_id.astype(str); t_ = t_[t_.doc_id.isin(needv)]
         VFULL.update(zip(t_.doc_id, t_.text.fillna("")))
     print("VI full text:", len(VFULL), "/", len(needv), flush=True)
-out, s0, s1, nzh, nfill = [], [], [], [], []
+out, s0, s1, nzh, nfill, ndual = [], [], [], [], [], []
 for q in sorted(B):
     b = B[q]; vi = [(d, p, "vi") for d, p in zip(od.get(str(q), []), pr.get(str(q), []))]
     zg = ZG.get(q)
@@ -94,10 +96,16 @@ for q in sorted(B):
         if not t and lang == "vi" and a.vi_fill and d in VTX:
             w = VIW.get((q, d)) or VTX[d][:1600]; t = expand(VTX[d], w, a.vi_fill) if len(w) < a.vi_fill else w[:a.vi_fill]; nfill.append(1)
         if t: ch.append({"doc_id": int(d), "chunk_text": t})
+        if lang == "vi" and a.vi_dual and d in VFULL and len(ch) <= a.dual_top and vch.get(d):
+            doc = VFULL[d]; p0 = doc.find(vch[d][:200]); c0 = (p0 if p0 >= 0 else 0) + 800; N = a.vi_dual
+            if len(doc) > 1.5 * N:
+                st = max(0, min(c0 - N // 2, len(doc) - N)); sp = doc.find(" ", st); st = sp + 1 if 0 <= sp < st + 30 else st
+                en = min(len(doc), st + N); sp = doc.rfind(" ", st, en); en = sp if sp > en - 30 else en
+                ch.append({"doc_id": int(d), "chunk_text": doc[st:en]}); ndual.append(1)
         if len(ch) >= a.chunk_max: break
     out.append({"id": q, "relevant_docs": [int(x[0]) for x in sel], "relevant_chunks": ch})
 print(f"F2 docs mô phỏng (public, nhãn hiện có): gốc {np.mean(s0):.4f} → trộn ZH {np.mean(s1):.4f}  | doc ZH/câu chọn: TB {np.mean(nzh):.1f}")
 if not a.sim and a.out:
     with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zz:
         zz.writestr("submission.json", json.dumps(out, ensure_ascii=False))
-    print("chunk VI bù:", len(nfill)); print("wrote", a.out, len(out), "| chunk ZH:", sum(1 for r in out for c in r["relevant_chunks"] if str(c["doc_id"]) in need))
+    print("chunk VI bù:", len(nfill), "| chunk ngắn thêm:", len(ndual)); print("wrote", a.out, len(out), "| chunk ZH:", sum(1 for r in out for c in r["relevant_chunks"] if str(c["doc_id"]) in need))

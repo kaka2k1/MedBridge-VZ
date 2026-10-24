@@ -87,3 +87,4 @@ date,file,config,score_doc_p,score_doc_r,score_chunk_p,score_chunk_r,f2_macro
 2026-10-23 17:55,v76b (6703),"NEW chunk metric: vi-chars 5000 zh 1800 cm250 (best under new metric so far)",0.2469,0.6478,0.2094,0.4953,0.4077
 2026-10-23 23:00,v77a,"NEW chunk metric: vi-chars 4000 zh 900 cm260",0.2469,0.6478,0.2071,0.4926,0.4064
 2026-10-24 11:10,v77b (6800),"NEW chunk metric: vi-chars 3000 zh 900 cm280 -> chunk length barely matters (chunks F2 .354-.361): placement of chunk vs gold is the issue",0.2469,0.6478,0.2034,0.4881,0.4043
+2026-10-24 15:30,v78a/v78b,"NEW metric: VI chunk ~3000 chars centered on dense window (v78a) / doc start (v78b): 0.4044/0.4044 = same as trunc (v77b .4043) -> placement irrelevant (median VI doc ~2.3k chars); lost hits likely SHORT gold chunks (<~340 tokens) failing LCS/pred>=.4",0.2469,0.6478,0.2035,0.4885,0.4044
