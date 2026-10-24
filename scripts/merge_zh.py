@@ -15,6 +15,8 @@ ap.add_argument("--chunk-max", type=int, default=240); ap.add_argument("--zh-cha
 ap.add_argument("--zh-scale", type=float, default=1.0, help="nhân xác suất ZH (hiệu chỉnh)"); ap.add_argument("--sim", action="store_true")
 ap.add_argument("--vi-fill", type=int, default=0, help=">0: doc VI được chọn mà zip gốc KHÔNG có chunk → chunk = cửa sổ d3 (hoặc đầu doc) nới tới N ký tự")
 ap.add_argument("--d3", default="data/cache/dense_chunks_top_v9.json")
+ap.add_argument("--vi-mode", default="trunc", choices=["trunc", "center", "docstart"], help="trunc: N ký tự đầu chunk gốc (bắt đầu ở cửa sổ dense); center: căn giữa cửa sổ dense (cần --vi-texts); docstart: N ký tự đầu doc")
+ap.add_argument("--vi-texts", default="", help="thư mục corpus-*.parquet (doc_id, text) cho --vi-mode center/docstart")
 ap.add_argument("--vi-chars", type=int, default=0, help=">0: cắt chunk VI (nới về sau từ cửa sổ dense, 8000 ký tự) còn N ký tự đầu ⇒ tiết kiệm dung lượng để tăng --chunk-max")
 a = ap.parse_args()
 z = zipfile.ZipFile(a.base); B = {r["id"]: r for r in json.loads(z.read(z.namelist()[0]))}
@@ -50,6 +52,14 @@ def f2(docs, q):
     return 5 * P * R / (4 * P + R) if r else 0.0
 
 
+VFULL = {}
+if a.vi_texts and a.vi_mode != "trunc" and not a.sim:   # văn bản đầy đủ của doc VI có chunk trong bài gốc
+    import glob as _g, pyarrow.parquet as _pq
+    needv = {str(c["doc_id"]) for b in B.values() for c in b["relevant_chunks"]}
+    for f in sorted(_g.glob(f"{a.vi_texts}/**/corpus-*.parquet", recursive=True)):
+        t_ = _pq.read_table(f, columns=["doc_id", "text"]).to_pandas(); t_["doc_id"] = t_.doc_id.astype(str); t_ = t_[t_.doc_id.isin(needv)]
+        VFULL.update(zip(t_.doc_id, t_.text.fillna("")))
+    print("VI full text:", len(VFULL), "/", len(needv), flush=True)
 out, s0, s1, nzh, nfill = [], [], [], [], []
 for q in sorted(B):
     b = B[q]; vi = [(d, p, "vi") for d, p in zip(od.get(str(q), []), pr.get(str(q), []))]
@@ -66,6 +76,19 @@ for q in sorted(B):
     ch = []
     for d, _, lang in sel:
         t = vch.get(d) if lang == "vi" else TX.get(d, "")[:a.zh_chars]
+        if t and lang == "vi" and a.vi_chars and a.vi_mode != "trunc" and d in VFULL:
+            doc = VFULL[d]; N = a.vi_chars
+            if a.vi_mode == "docstart":
+                st = 0
+            else:
+                p0 = doc.find(t[:200]); c0 = (p0 if p0 >= 0 else 0) + 800      # cửa sổ dense ~1600 ký tự bắt đầu tại p0
+                st = max(0, min(c0 - N // 2, len(doc) - N))
+            en = min(len(doc), st + N)
+            if st > 0:
+                sp = doc.find(" ", st); st = sp + 1 if 0 <= sp < st + 40 else st
+            if en < len(doc):
+                sp = doc.rfind(" ", st, en); en = sp if sp > en - 40 else en
+            t = doc[st:en]
         if t and lang == "vi" and a.vi_chars and len(t) > a.vi_chars:
             t = t[:a.vi_chars]; sp = t.rfind(" "); t = t[:sp] if sp > a.vi_chars - 50 else t   # cắt ở ranh giới từ
         if not t and lang == "vi" and a.vi_fill and d in VTX:
