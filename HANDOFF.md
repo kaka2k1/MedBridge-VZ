@@ -81,6 +81,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 
 **19/10 – cả hai KHÔNG giúp:** (1) ce2 3 seed trung bình (`kaggle_ce2c/`, `kaggle_ce2d/`, `run64.sh`): AUC/câu .7728 vs .7671 nhưng LTR oof33 f2sim .3992 < v62 .3997. (2) **Giả thuyết pooling** (`kaggle_bm25p/` trên Kaggle CPU, 12 cấu hình BM25 toàn kho VI: âm tiết/pyvi, title+text/text/cắt 2000–3000, lucene/robertson, k1/b): top-42 chỉ 13–14% dương đã biết, 57–70% ÂM đã biết (LTR v62: 37% dương) ⇒ baseline BTC (docs P .88) KHÔNG phải BM25 thường trên kho công khai – nhiều khả năng BM25 trên tập doc đã duyệt/gold ⇒ không tái tạo được. Job dài: chạy bằng `systemd-run --user --unit=r2ai-<tên>` (systemd-oomd từng giết cả scope VS Code 19/10 17:10).
 
+**LUẬT CHẤM CHUNK MỚI (BTC 23/10: LCS ≥40% cả độ dài gold LẪN độ dài chunk dự đoán):** chunks F2 rơi .44 → ~.36 cho mọi cấu hình. Quét: VI 8000/6000/5000/4000/3000 ký tự, vị trí (cắt từ cửa sổ dense / căn giữa / đầu doc), chunk đôi, chunk ngắn – tốt nhất **v76b = 0.4077** (VI ≤5000 `--vi-chars 5000`, ZH 1800, cm250). Chunk ngắn (1200) tệ (.153). Đóng băng `submissions/private/P7_v76b.zip` – **NỘP ĐẦU TIÊN Ở PRIVATE (theo luật mới)**. Đang: v80a/b tinh chỉnh `--zh-scale` 1.0 / 0.75 (nén local, MemoryMax 10G).
+
 **23/10:** v75 = 0.4488 (docs .4545 +.0022 nhờ câu hỏi dịch ZH; chunks thấp vì cm180). BTC KHÔNG còn trả details (scoring_result None) ⇒ hết thu nhãn. Máy reboot OOM lần 2 (10:13) → **mọi bước nặng chạy trên Kaggle**: `kaggle_buildzip/` (merge_zh + LZMA từ jobs.json; dataset `kakaoffical/r2ai-buildin` = v65.zip.bin, oof34, zh_probs*, zh_docs, details) + `scripts/kaggle_build_fetch.sh <prefix> <out.zip>` (tải, chọn bản <99.5MB, nộp thẳng có chống trùng). Relay: mỗi lần tạo dataset mới (submit_api). Đang: v75b (cm200/190).
 
 **BÀI TỐT NHẤT (22/10 23:55): v74 = 0.4486** (ID 6575) = v65 + ZH 222.3k doc + CE ZH (`zh_probs6.parquet`). Đóng băng `submissions/private/P6_v74.zip` – **NỘP ĐẦU TIÊN Ở PRIVATE** (trước P5_v71). Relay PUT thành công nhưng đăng ký bị ngắt → hoàn tất bằng `submit_api.finish(s, <dataset key>, 44)` (key tra ở `/api/datasets/`). scoring_result có thể xuất hiện muộn → `scripts/fetch_details.py <sid> <tên>`. v75 (câu hỏi dịch ZH, Qwen2.5-7B; zh_ltr AUC .784) nén LOCAL được (MemoryMax 9G, dict 768MB, peak 7.3GB, 94.9MB) → đang relay. v73 relay lỗi Kaggle 'slugs and hashlink are all null' → nộp lại sau.
@@ -116,7 +118,8 @@ e5 mã hoá 222k ứng viên (`colab/encode_e5.py`, 1h23) → `data/cache/e5/` �
 - **Phase 45 "Kiểm thử riêng", task 51**: 01/11 07:00 → 04/11 07:00 (GMT+7) – hệ thống đóng 07:00, KHÔNG phải 23:59. **Chỉ 5 bài tổng**. Chấm 600 câu còn lại của CÙNG file 1200 câu ⇒ các zip hiện tại đã chứa dự đoán private.
 - **Bài đã đóng băng** (`submissions/private/`, SHA256 trong `SHA256SUMS`, sao lưu Kaggle `daophong123/r2ai-private-backup`):
   - **P1 = `P1_v62.zip`** (= v62, public 0.4083) – NỘP ĐẦU TIÊN, sáng 01/11 ngay sau 07:00.
-  - **P6 = `P6_v74.zip`** (= v74, public 0.4486) – **NỘP ĐẦU TIÊN**.
+  - **P7 = `P7_v76b.zip`** (= v76b, 0.4077 theo LUẬT CHUNK MỚI) – **NỘP ĐẦU TIÊN**.
+  - **P6 = `P6_v74.zip`** (= v74, 0.4486 theo luật cũ; chunk 8000 – kém hơn theo luật mới).
   - **P5 = `P5_v71.zip`** (= v71, public 0.4434).
   - **P4 = `P4_v70.zip`** (= v70, public 0.4348, + ZH).
   - **P3 = `P3_v65.zip`** (= v65, public 0.4095, có Pharmacity).
