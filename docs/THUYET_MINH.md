@@ -106,7 +106,7 @@ Không dùng dữ liệu y khoa ngoài nào khác.
 
 Toàn bộ dữ liệu và các kết quả trung gian được chia sẻ tại thư mục Google Drive:
 
-> **[ĐIỀN LINK GOOGLE DRIVE]** (quyền xem cho bất kỳ ai có link)
+> **<https://drive.google.com/drive/folders/1jB0r1TeckHKD3Z80MC8bkhjnLsegtfkS?usp=sharing>** (quyền xem cho bất kỳ ai có link)
 
 | Tệp trên Drive | Nội dung | Kích thước |
 |---|---|---|

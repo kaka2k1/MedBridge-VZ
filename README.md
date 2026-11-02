@@ -31,7 +31,7 @@ python3.12 -m venv .venv
 .venv/bin/huggingface-cli download AIGuruTinix/ViBioMIR links_corpus_vi_en_zh.parquet --repo-type dataset --local-dir data/ViBioMIR_new
 ```
 
-Dữ liệu đội tự thu thập và kết quả trung gian nằm trên Google Drive: **[ĐIỀN LINK GOOGLE DRIVE]**
+Dữ liệu đội tự thu thập và kết quả trung gian nằm trên Google Drive: **<https://drive.google.com/drive/folders/1jB0r1TeckHKD3Z80MC8bkhjnLsegtfkS?usp=sharing>**
 
 ```bash
 mkdir -p data/docs data/cache/kg_zhdocs
