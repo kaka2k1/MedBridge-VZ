@@ -14,3 +14,4 @@ __pycache__/
 /*.cfg.json
 .venv_setup.log
 .venv/colab/vi_remaining*.csv
+release/

@@ -30,7 +30,10 @@ TX = {}
 if not a.sim:
     D = pd.read_parquet("data/cache/kg_zhdocs/zh_docs.parquet", columns=["doc_id", "text"]); D["doc_id"] = D.doc_id.astype(str)
     TX = dict(zip(D.doc_id, D.text.fillna("")))
-pos, seen = labels()
+try:   # nhãn chỉ để IN F2 mô phỏng; thiếu file details (người tái hiện) vẫn chạy được
+    pos, seen = labels()
+except Exception:
+    pos, seen = {}, {}
 VIW, VTX = {}, {}
 if a.vi_fill and not a.sim:   # văn bản VI cho doc thiếu chunk
     import glob, pyarrow.parquet as pq
@@ -44,7 +47,9 @@ if a.vi_fill and not a.sim:   # văn bản VI cho doc thiếu chunk
         VTX.update(zip(t.doc_id, t.text.fillna("")))
     D3 = json.load(open(a.d3)); VIW = {(int(q), str(x[1])): x[2] for q, v in D3.items() for x in v if len(x) > 2 and x[2]}; del D3
     print("VI cần bù chunk:", len(need_vi), "có text:", len(VTX), flush=True)
-gold = {int(json.loads(l)["id"]): json.loads(l)["document"]["gold"] for l in open("data/eval/details_6294_v65.jsonl")}
+import os as _os
+GF = "data/eval/details_6294_v65.jsonl"
+gold = {int(json.loads(l)["id"]): json.loads(l)["document"]["gold"] for l in open(GF)} if _os.path.exists(GF) else {}
 
 
 def f2(docs, q):
@@ -104,7 +109,7 @@ for q in sorted(B):
                 ch.append({"doc_id": int(d), "chunk_text": doc[st:en]}); ndual.append(1)
         if len(ch) >= a.chunk_max: break
     out.append({"id": q, "relevant_docs": [int(x[0]) for x in sel], "relevant_chunks": ch})
-print(f"F2 docs mô phỏng (public, nhãn hiện có): gốc {np.mean(s0):.4f} → trộn ZH {np.mean(s1):.4f}  | doc ZH/câu chọn: TB {np.mean(nzh):.1f}")
+if s0: print(f"F2 docs mô phỏng (public, nhãn hiện có): gốc {np.mean(s0):.4f} → trộn ZH {np.mean(s1):.4f}  | doc ZH/câu chọn: TB {np.mean(nzh):.1f}")
 if not a.sim and a.out:
     with zipfile.ZipFile(a.out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zz:
         zz.writestr("submission.json", json.dumps(out, ensure_ascii=False))
