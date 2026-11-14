@@ -13,5 +13,10 @@ __pycache__/
 /test.html
 /*.cfg.json
 .venv_setup.log
-.venv/colab/vi_remaining*.csv
+colab/vi_remaining*.csv
+run.txt
 release/
+app_live/docs.sqlite
+app_live/server.log
+app_live/cache.json*
+app_live/*.mp4

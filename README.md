@@ -5,6 +5,10 @@ Nhật ký kỹ thuật và mọi thí nghiệm: [HANDOFF.md](HANDOFF.md), [expe
 
 Bài nộp private: `submissions/private/P7_v76b.zip` (ID 7924). Public: 0.4077 theo luật chấm đoạn mới (23/10/2026).
 
+**Kết quả:** **Top 2 vòng chung kết** (14/11/2026). Private 0.3801 (bài P7_v76b; 4 bài private 0.3778–0.3801), public 0.4077.
+
+Tài liệu chung kết: hỏi đáp [docs/HOI_DAP_CHUNG_KET.md](docs/HOI_DAP_CHUNG_KET.md) · ứng dụng tra cứu trực tiếp [app_live/](app_live/README.md) (`bash app_live/run.sh`).
+
 ---
 
 ## 1. Yêu cầu môi trường

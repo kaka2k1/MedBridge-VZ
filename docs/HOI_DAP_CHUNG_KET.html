@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hỏi đáp chung kết · ViBioMIR</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#F3F6F5;--surface:#fff;--ink:#12233B;--ink2:#46505E;--ink3:#6A7380;--line:#D9E0DD;--line2:#EBF0EE;--brand:#0F7B74;--brandbg:#E3F3EF;--accent:#C2410C;--accentbg:#FDEEE5;--warn:#FFF8E6;--warnline:#F0DCA8;--mark:#FFE58F;--sh:0 1px 2px rgba(18,35,59,.04),0 4px 16px rgba(18,35,59,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1720;--surface:#17212C;--ink:#E7EDF2;--ink2:#B5C0CA;--ink3:#8796A4;--line:#2A3846;--line2:#22303D;--brand:#4FC3B3;--brandbg:#173A38;--accent:#F0915A;--accentbg:#3A2418;--warn:#2E2814;--warnline:#5A4B20;--mark:#6B5A12;--sh:none}}
+:root[data-theme="dark"]{--bg:#0F1720;--surface:#17212C;--ink:#E7EDF2;--ink2:#B5C0CA;--ink3:#8796A4;--line:#2A3846;--line2:#22303D;--brand:#4FC3B3;--brandbg:#173A38;--accent:#F0915A;--accentbg:#3A2418;--warn:#2E2814;--warnline:#5A4B20;--mark:#6B5A12;--sh:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:120px}
+body{background:var(--bg);color:var(--ink);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 45%,transparent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;gap:10px;align-items:center;padding:12px 0}
+.search{flex:1;position:relative}
+.search input{width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);outline:none}
+.search input:focus{border-color:var(--brand)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink3)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 13px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+nav.toc{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;scrollbar-width:none}
+nav.toc::-webkit-scrollbar{display:none}
+nav.toc a{flex:none;font-size:13.5px;font-weight:600;color:var(--ink2);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px}
+nav.toc a:hover{color:var(--brand);border-color:var(--brand)}
+.hero{padding:40px 0 8px}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+h1{font-size:36px;line-height:1.2;letter-spacing:-.02em;font-weight:800;margin:8px 0 10px}
+.lead{color:var(--ink2);font-size:17px}
+.lead b{color:var(--ink)}
+.msgs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0 8px}
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--sh)}
+.msg .n{font-size:26px;font-weight:800;color:var(--brand);line-height:1.1}
+.msg b{display:block;margin:6px 0 2px;font-size:15.5px}
+.msg span{font-size:14px;color:var(--ink2)}
+section.grp{margin-top:36px}
+.gh{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.gh .tag{flex:none;width:32px;height:32px;border-radius:9px;background:var(--brandbg);color:var(--brand);display:grid;place-items:center;font-weight:800}
+.gh h2{font-size:22px;letter-spacing:-.01em}
+.gh.hot .tag{background:var(--accentbg);color:var(--accent)}
+.gnote{font-size:14.5px;color:var(--ink3);margin:-4px 0 12px 44px}
+details.qa{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;box-shadow:var(--sh)}
+details.qa>summary{list-style:none;cursor:pointer;padding:14px 18px;display:grid;grid-template-columns:44px 1fr 20px;gap:8px;align-items:start;font-weight:700;font-size:16.5px}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary .id{font-size:13px;font-weight:700;color:var(--ink3);padding-top:3px}
+details.qa>summary .chev{color:var(--ink3);transition:transform .2s;padding-top:2px}
+details.qa[open]>summary .chev{transform:rotate(90deg)}
+details.qa .ans{padding:0 18px 16px 70px;color:var(--ink2)}
+details.qa .ans p+p,details.qa .ans p+ul,details.qa .ans ul+p{margin-top:8px}
+details.qa .ans b{color:var(--ink)}
+details.qa .ans ul{padding-left:20px}
+details.qa .ans li+li{margin-top:4px}
+.tip{display:block;margin-top:10px;font-size:14px;background:var(--warn);border:1px solid var(--warnline);border-radius:10px;padding:8px 12px;color:var(--ink2)}
+.num{font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fill{background:var(--accentbg);color:var(--accent);font-weight:700;border-radius:6px;padding:1px 6px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--line2);border-radius:5px;padding:1px 5px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line2)}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3)}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.hl td{font-weight:700;color:var(--ink)}
+mark{background:var(--mark);color:inherit;border-radius:3px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--sh)}
+.check label{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line2);cursor:pointer}
+.check label:last-child{border:0}
+.check input{width:19px;height:19px;margin-top:3px;accent-color:var(--brand);flex:none}
+.check input:checked+span{color:var(--ink3);text-decoration:line-through}
+.empty{display:none;text-align:center;color:var(--ink3);padding:30px}
+footer{margin:48px 0 40px;font-size:13.5px;color:var(--ink3);text-align:center}
+.hide{display:none!important}
+@media(max-width:640px){h1{font-size:28px}.msgs{grid-template-columns:1fr}details.qa>summary{grid-template-columns:34px 1fr 18px;padding:13px 14px}details.qa .ans{padding:0 14px 14px 14px}.bar .btn span{display:none}}
+@media print{header.top,.bar,nav.toc{display:none}body{background:#fff;font-size:12.5pt}details.qa{break-inside:avoid;box-shadow:none}details.qa .ans{display:block!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+.nw{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:2px;background:var(--brand);color:#fff}
+@media print{.nw{display:none}}
+</style></head><body>
+
+<header class="top"><div class="wrap">
+ <div class="bar">
+  <div class="search"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+   <input id="q" type="search" placeholder="Tìm câu hỏi… (ví dụ: nhãn, PubMed, F2, tốc độ)" aria-label="Tìm câu hỏi" autocomplete="off"></div>
+  <button class="btn" id="tog" title="Mở/thu gọn tất cả">⇅ <span>Thu gọn tất cả</span></button>
+  <button class="btn" id="theme" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+ </div>
+ <nav class="toc" aria-label="Mục lục">
+  <a href="#msg">Thông điệp</a><a href="#A">A. Kết quả</a><a href="#B">B. Phương pháp</a><a href="#C">C. Dữ liệu</a><a href="#D">D. Nhãn &amp; minh bạch</a><a href="#E">E. Ứng dụng demo</a><a href="#F">F. Hạn chế</a><a href="#G">G. Câu bất ngờ</a><a href="#H">H. Thực nghiệm</a><a href="#chk">Kiểm tra sáng 14/11</a>
+ </nav>
+</div></header>
+
+<main class="wrap">
+<div class="hero" id="msg">
+ <div class="eyebrow">Chung kết R2AI 2026 · ViBioMIR · aichickenteam</div>
+ <h1>Chuẩn bị hỏi đáp</h1>
+ <p class="lead">5 phút trình bày + 5 phút hỏi đáp. Mỗi câu trả lời gói trong <b>20–40 giây</b>: nói thẳng ý chính, đưa một con số, rồi dừng. Giám khảo muốn hỏi sâu sẽ hỏi tiếp.</p>
+ <div class="msgs">
+  <div class="msg"><div class="n">+0.039</div><b>Xuyên ngôn ngữ thật sự</b><span>Dịch câu hỏi sang tiếng Trung; nhánh ZH nâng public 0.4095 → 0.4488.</span></div>
+  <div class="msg"><div class="n">30–300</div><b>Biết dừng đúng chỗ</b><span>Mỗi câu chọn số tài liệu tối đa F2 kỳ vọng, không dùng top-k cố định.</span></div>
+  <div class="msg"><div class="n">OOF</div><b>Trung thực, tái hiện được</b><span>Đánh giá out-of-fold theo câu, khai báo nguồn nhãn, gửi đủ mã và dữ liệu.</span></div>
+ </div>
+</div>
+
+<!-- A -->
+<section class="grp" id="A"><div class="gh"><span class="tag">A</span><h2>Kết quả</h2></div>
+<details class="qa" open><summary><span class="id">A1</span><span>Điểm của đội là bao nhiêu?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Vòng private đạt <span class="num">0.3801</span>. Bốn bài nộp private với cấu hình khác nhau nằm trong khoảng <span class="num">0.3778–0.3801</span>, chênh dưới 0.003, nên hệ thống ổn định. Ở public: <span class="num">0.4488</span> theo luật chấm cũ, <span class="num">0.4077</span> theo luật chấm đoạn mới (BTC đổi ngày 23/10).</p>
+ <span class="tip">Không nhắc thứ hạng.</span></div></details>
+<details class="qa" open><summary><span class="id">A2</span><span>Vì sao private (0.3801) thấp hơn public (0.4077)?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Hai tập có câu hỏi khác nhau nên chênh lệch là bình thường. Đội đã hạn chế khớp quá mức vào public: mọi xác suất của câu public đều là <b>out-of-fold</b>, tức mô hình chấm một câu không thấy nhãn của chính câu đó.</p>
+ <p>Một số đặc trưng như "tài liệu đúng của câu hỏi tương tự" và tiên nghiệm tên miền có lợi hơn cho câu public vì cùng tập với nhãn. Đây là hướng đội muốn cải thiện.</p>
+ <span class="tip">Nói trung thực, không đoán thêm nguyên nhân khác.</span></div></details>
+<details class="qa" open><summary><span class="id">A3</span><span>Luật chấm đoạn mới ảnh hưởng thế nào?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Luật mới yêu cầu độ trùng LCS ≥ 40% so với <b>cả</b> độ dài đoạn đúng <b>và</b> độ dài đoạn dự đoán. Đoạn dài không còn được lợi, nên điểm cùng hệ thống giảm từ <span class="num">0.449</span> xuống khoảng <span class="num">0.408</span>.</p>
+ <p>Đội đã quét lại độ dài đoạn (3.000–8.000 ký tự, vị trí cắt, đoạn đôi, đoạn ngắn) và chọn tiếng Việt ≤ 5.000 ký tự, tiếng Trung 1.800 ký tự. Độ dài gần như không đổi điểm; đoạn quá ngắn (1.200 ký tự) thì tệ hẳn.</p></div></details>
+<details class="qa" open><summary><span class="id">A4</span><span>Đóng góp lớn nhất đến từ đâu?</span><span class="chev">›</span></summary><div class="ans">
+ <table><tr><th>Bản</th><th>Thay đổi</th><th style="text-align:right">Public</th></tr>
+ <tr><td>v31</td><td>BM25 + dense, top-k cố định</td><td class="r">0.298</td></tr>
+ <tr><td>v62</td><td>LightGBM LTR + cross-encoder fine-tune</td><td class="r">0.408</td></tr>
+ <tr><td>v70</td><td>Thêm nhánh tiếng Trung</td><td class="r">0.435</td></tr>
+ <tr class="hl"><td>v75</td><td>Dịch câu hỏi VI → ZH</td><td class="r">0.449</td></tr></table>
+ <p>Huấn luyện lại cross-encoder trên toàn bộ nhãn tích lũy cũng là một đòn bẩy lớn.</p></div></details>
+<details class="qa" open><summary><span class="id">A5</span><span>Điểm 0.38 có thấp không? Con số này nghĩa là gì?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>F2 coi trọng <b>độ phủ (recall) gấp 4 lần độ chính xác</b>, và mỗi câu hỏi có nhiều tài liệu đúng nằm rải trong gần <b>1 triệu trang</b>. Ở public, hệ thống tìm được khoảng <span class="num">65%</span> tài liệu đúng (recall) với độ chính xác khoảng <span class="num">25%</span>.</p><p>Mốc so sánh trong chính đội: BM25 cơ bản những ngày đầu đạt dưới 0.1 ở public; hệ thống cuối cao gấp hơn 4 lần.</p><span class="tip">Không tự so với đội khác.</span></div></details>
+<details class="qa" open><summary><span class="id">A6</span><span>Độ chính xác (precision) chỉ khoảng 25% có đáng lo không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Đây là lựa chọn có chủ đích theo thước đo F2: bỏ sót một tài liệu đúng bị phạt nặng hơn trả thừa. Trong tra cứu y khoa cũng vậy: bỏ sót bằng chứng nguy hiểm hơn đọc thêm vài tài liệu.</p><p>Kết quả luôn <b>xếp theo xác suất liên quan</b>, nên tài liệu tốt nhất nằm đầu. Nếu dùng thực tế, chỉ cần đổi trọng số (ví dụ F1 hoặc F0.5) là công thức tự trả ít tài liệu hơn, chính xác hơn.</p></div></details>
+<details class="qa" open><summary><span class="id">A7</span><span>Đội đã thử nghiệm bao nhiêu lần để đến kết quả này?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Khoảng <span class="num">90</span> thử nghiệm ghi trong <code>experiments.csv</code> trong khoảng 3 tuần (03/10–25/10). Public đi từ <span class="num">0.008</span> (bản đầu tiên) lên <span class="num">0.4488</span>.</p><p>Mỗi thay đổi đều được đo offline trước, chỉ nộp khi vượt ngưỡng; nhiều bản bị loại mà không nộp.</p></div></details>
+<details class="qa" open><summary><span class="id">A8</span><span>Những gì đã thử mà không hiệu quả?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li><b>HyDE</b> (để LLM viết tài liệu giả rồi tìm theo nó): không tăng khi đã có cross-encoder fine-tune.</li><li><b>Reranker tiếng Việt chuyên biệt</b> (Vietnamese_Reranker): AUC thấp hơn bge-reranker-v2-m3 fine-tune.</li><li><b>LLM làm giám khảo</b> (Qwen3-8B): AUC <span class="num">0.66</span>, kém mô hình nhúng.</li><li><b>PubMed tiếng Anh</b>: 0 kết quả đúng sau hai lần thăm dò.</li><li><b>Đoạn kép (dài + ngắn)</b> theo luật chấm mới: tệ hơn rõ (0.394 so với 0.408).</li></ul><span class="tip">Câu này cho thấy đội làm có phương pháp: nêu 2–3 ví dụ là đủ.</span></div></details>
+</section>
+
+<!-- B -->
+<section class="grp" id="B"><div class="gh"><span class="tag">B</span><h2>Phương pháp</h2></div>
+<details class="qa" open><summary><span class="id">B1</span><span>Tóm tắt hệ thống trong một câu?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Truy hồi nhiều nguồn (BM25 + mô hình nhúng) → xếp hạng lại bằng LightGBM trên khoảng <span class="num">60</span> đặc trưng → trộn tiếng Việt và tiếng Trung theo xác suất → chọn số tài liệu tối ưu F2 → trích đoạn nguyên văn.</p></div></details>
+<details class="qa" open><summary><span class="id">B2</span><span>Chọn số tài liệu tối ưu F2 như thế nào?</span><span class="chev">›</span></summary><div class="ans">
+ <p>LightGBM cho mỗi tài liệu một xác suất liên quan p. Với n tài liệu đầu: <b>F2 kỳ vọng ≈ 5·Σp₁..ₙ / (4·c·Σp + n)</b>.</p>
+ <ul><li>Tử số là số tài liệu đúng kỳ vọng.</li><li><b>c·Σp</b> ước lượng tổng số tài liệu đúng, kể cả những tài liệu hệ thống chưa tìm thấy, vì vậy <span class="num">c = 1.9</span> &gt; 1.</li><li>Chọn n làm biểu thức lớn nhất: câu dễ trả về ít, câu khó/rộng trả về nhiều (30–300 tài liệu).</li></ul></div></details>
+<details class="qa" open><summary><span class="id">B3</span><span>Vì sao dùng LightGBM mà không chỉ dùng cross-encoder?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Cross-encoder chỉ là một tín hiệu. LightGBM kết hợp khoảng 60 tín hiệu (BM25, các điểm dense, cross-encoder zero-shot và fine-tune, độ tương đồng với nhóm tài liệu đầu, tiên nghiệm tên miền, câu tương tự) và cho ra <b>xác suất đã hiệu chỉnh</b>. Bước chọn số tài liệu F2 và bước trộn Việt–Trung đều cần xác suất này.</p></div></details>
+<details class="qa" open><summary><span class="id">B4</span><span>Dịch câu hỏi dùng mô hình gì? Có kiểm soát chất lượng không?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Bài thi dùng <b>Qwen2.5-7B-Instruct</b>, giải mã greedy, prompt yêu cầu giữ nguyên thuật ngữ y khoa và chỉ xuất bản dịch.</p>
+ <p>Bản dịch là một nguồn ứng viên chứ không thay câu gốc: nhánh tiếng Trung tìm bằng <b>cả</b> câu Việt gốc (bge-m3 đa ngôn ngữ) <b>và</b> câu đã dịch (bge-m3 Trung–Trung, BM25 jieba). Dịch sai một từ thì vẫn còn các nguồn khác bù.</p>
+ <span class="tip">Ứng dụng demo dùng Qwen3-4B 4-bit cho nhẹ.</span></div></details>
+<details class="qa" open><summary><span class="id">B5</span><span>Trộn tài liệu Việt và Trung thế nào để không lệch?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Mỗi nhánh có LightGBM riêng nhưng cùng cho xác suất đã hiệu chỉnh, nên đặt chung một thang. Xác suất tiếng Trung nhân <span class="num">0.9</span> cho thận trọng. Trung bình khoảng <span class="num">22–27</span> tài liệu tiếng Trung mỗi câu được chọn.</p></div></details>
+<details class="qa" open><summary><span class="id">B6</span><span>Cắt đoạn (chunking) thế nào?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Cửa sổ khoảng <span class="num">1.600</span> ký tự theo ranh giới câu, tối đa 6 cửa sổ mỗi tài liệu, để tính dense cấp đoạn. Đoạn nộp là cửa sổ khớp ngữ nghĩa nhất, nới tối đa 5.000 ký tự (tiếng Việt); tiếng Trung lấy 1.800 ký tự đầu. Mọi đoạn đều trích nguyên văn.</p></div></details>
+<details class="qa" open><summary><span class="id">B7</span><span>Các mô hình có đúng quy định không?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Có. Tất cả là mã nguồn mở, ≤ 15B tham số, phát hành trước 01/08/2026: GreenNode-Embedding-Large-VN, bge-m3, multilingual-e5-large-instruct, bge-reranker-v2-m3, Qwen2.5-7B-Instruct, Qwen3-4B-Instruct-2507, cùng LightGBM. Không dùng LLM đóng hay API trả phí.</p></div></details>
+<details class="qa" open><summary><span class="id">B8</span><span>Vì sao không dùng LLM sinh câu trả lời (RAG)?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Đề yêu cầu trích <b>nguyên văn</b>, không sinh mới. Trong y khoa, trích nguồn gốc an toàn hơn để người dùng tự kiểm chứng. Đội đã thử Qwen3-8B làm "giám khảo" chấm liên quan: AUC <span class="num">0.66</span>, kém xa GreenNode (<span class="num">0.79</span>), nên bỏ.</p></div></details>
+<details class="qa" open><summary><span class="id">B9</span><span>Vì sao chọn số tài liệu theo F2 kỳ vọng mà không dùng ngưỡng xác suất?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Ngưỡng cố định không biết câu hỏi đó có bao nhiêu tài liệu đúng. Công thức F2 kỳ vọng tính cả tổng xác suất của câu, nên câu rộng trả nhiều, câu hẹp trả ít. Khi chuyển từ top-k cố định sang F2 kỳ vọng, public tăng <span class="num">0.314 → 0.325</span>.</p></div></details>
+<details class="qa" open><summary><span class="id">B10</span><span>Hằng số c = 1.9 chọn thế nào? Có khớp quá vào public không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Quét c trên các xác suất out-of-fold: c = 1.7, 1.9, 2.2 cho điểm gần như bằng nhau (chênh dưới 0.001). Kết quả <b>không nhạy</b> với c, nên ít rủi ro khớp quá.</p></div></details>
+<details class="qa" open><summary><span class="id">B11</span><span>Vì sao chọn GreenNode làm mô hình nhúng tiếng Việt?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Đội đánh giá các mô hình trên 200 câu có nhãn (12.000 cặp):</p><table><tr><th>Mô hình</th><th style="text-align:right">AUC</th></tr><tr class="hl"><td>GreenNode-Embedding-Large-VN</td><td class="r">0.787</td></tr><tr><td>bge-reranker-v2-m3 (zero-shot)</td><td class="r">0.765</td></tr><tr><td>bge-m3</td><td class="r">0.750</td></tr></table><p>GreenNode được huấn luyện riêng cho tiếng Việt nên tốt nhất; bge-m3 vẫn dùng cho tiếng Trung và làm đặc trưng bổ sung.</p></div></details>
+<details class="qa" open><summary><span class="id">B12</span><span>BM25 tiếng Việt tách từ thế nào?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Dùng âm tiết kèm cặp âm tiết liền nhau (bigram), giữ được cụm như "tiểu đường", "huyết áp". Đội đã thử 12 cấu hình (âm tiết, tách từ pyvi, bigram…) trên toàn kho; bản có bigram tốt hơn bản chỉ dùng âm tiết (public 0.119 so với 0.101).</p></div></details>
+<details class="qa" open><summary><span class="id">B13</span><span>kNN tài liệu–tài liệu là gì, sao cần?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Lấy các tài liệu gần nghĩa nhất với 40 tài liệu đầu (độ tương đồng ≥ 0.80) để thêm ứng viên mà BM25 và dense bỏ sót: trung bình khoảng <span class="num">48</span> tài liệu mới mỗi câu. Ý tưởng: tài liệu đúng thường giống nhau.</p></div></details>
+<details class="qa" open><summary><span class="id">B14</span><span>LightGBM 60 đặc trưng có dễ overfit không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li>Huấn luyện <b>5 fold theo câu hỏi</b>: một câu không bao giờ vừa ở tập học vừa ở tập chấm.</li><li>Regularization mạnh (min_data_in_leaf 50, L2 = 10), trung bình 5 seed.</li><li>Quét 5 bộ siêu tham số: AUC chênh dưới 0.001, tức mô hình ổn định.</li></ul></div></details>
+<details class="qa" open><summary><span class="id">B15</span><span>Cross-encoder được fine-tune ra sao?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Từ bge-reranker-v2-m3, fine-tune trên cặp (câu hỏi, tài liệu) và (câu hỏi, cửa sổ đoạn) có nhãn, 5 fold theo câu trên Kaggle T4×2 (3–6 giờ mỗi lần). Có bản riêng cho cặp Việt–Trung. Huấn luyện lại trên toàn bộ nhãn tích lũy đưa public từ <span class="num">0.393</span> lên <span class="num">0.406</span>.</p></div></details>
+<details class="qa" open><summary><span class="id">B16</span><span>Đặc trưng "tài liệu đúng của câu hỏi tương tự" có làm rò nhãn không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Không. Đặc trưng chỉ dùng nhãn của <b>câu khác</b> nằm trong fold huấn luyện, không bao giờ dùng nhãn của chính câu đang chấm (fold-safe). Câu private dùng nhãn câu public tương tự: hợp lệ vì đó là dữ liệu đã biết.</p><span class="tip">Đây cũng là lý do điểm private thấp hơn public (xem A2).</span></div></details>
+<details class="qa" open><summary><span class="id">B17</span><span>Vì sao đoạn tiếng Trung lấy phần đầu văn bản?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Phần lớn trang tiếng Trung là trang hỏi–đáp y khoa ngắn (120ask, 39.net): câu hỏi và trả lời chính nằm ngay đầu trang. Đội thử 900 và 1.800 ký tự; cấu hình 1.800 ký tự cho điểm tốt nhất nên được giữ.</p></div></details>
+<details class="qa" open><summary><span class="id">B18</span><span>Vì sao dịch bằng LLM (Qwen) mà không dùng mô hình dịch chuyên dụng?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>LLM điều khiển được bằng prompt: giữ nguyên thuật ngữ, chỉ xuất bản dịch, không trả lời câu hỏi. Đây cũng là gợi ý "Query Translation" tại Mentor Day 3. Thêm bản dịch làm AUC nhánh Trung tăng 0.767 → 0.784.</p><span class="tip">Đội chưa so sánh với mô hình dịch chuyên dụng (NLLB…): nói thẳng là hướng thử tiếp.</span></div></details>
+<details class="qa" open><summary><span class="id">B19</span><span>Giải thích hệ thống cho người không chuyên AI?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p><i>"Giống một thủ thư giỏi hai thứ tiếng. Bạn hỏi bằng tiếng Việt; thủ thư tìm trong gần 1 triệu trang sách y khoa tiếng Việt, tự dịch câu hỏi sang tiếng Trung để tìm thêm trong sách tiếng Trung, rồi đọc kỹ lại từng trang để xếp trang hợp nhất lên đầu. Cuối cùng thủ thư đưa bạn đúng đoạn văn trả lời, kèm tên sách để bạn tự kiểm tra, không tự bịa ra câu trả lời."</i></p><span class="tip">Dùng khi giám khảo không thuộc chuyên ngành AI, hoặc ngay sau câu hỏi đầu tiên.</span></div></details>
+<details class="qa" open><summary><span class="id">B20</span><span>Câu hỏi dài, nhiều ý hoặc viết kiểu nói chuyện thì sao?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Mô hình nhúng (GreenNode, bge-m3) so khớp theo <b>ý nghĩa</b> cả câu, nên không cần đúng từ khóa và chịu được cách viết tự nhiên. Ngoài ra, Qwen3-4B phân tích câu hỏi để rút từ khóa y khoa cho BM25, tránh bị nhiễu bởi các từ như "cho em hỏi", "phải làm sao".</p><p>Câu nhiều ý thì F2 kỳ vọng tự trả nhiều tài liệu hơn để phủ các ý. Tách câu hỏi thành nhiều câu con là hướng cải thiện tiếp.</p></div></details>
+<details class="qa" open><summary><span class="id">B21</span><span>Vì sao ghép nhiều bước mà không dùng một mô hình end-to-end?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li><b>Quy mô:</b> không mô hình nào đọc được 1 triệu trang cho mỗi câu. Phải lọc nhanh (BM25, vector) xuống vài trăm trang rồi mới chấm kỹ, đây là kiến trúc chuẩn của các hệ tìm kiếm.</li><li><b>Đo được từng phần:</b> biết bước nào yếu để sửa đúng chỗ (ví dụ thêm dữ liệu tăng 0.05, thêm tiếng Trung tăng 0.04).</li><li><b>Phần cứng có hạn:</b> các bước đều chạy được trên GPU miễn phí và GPU 8 GB.</li></ul></div></details>
+</section>
+
+<!-- C -->
+<section class="grp" id="C"><div class="gh"><span class="tag">C</span><h2>Dữ liệu</h2></div>
+<details class="qa" open><summary><span class="id">C1</span><span>Dữ liệu lấy từ đâu?</span><span class="chev">›</span></summary><div class="ans">
+ <p>BTC chỉ cung cấp danh sách URL. Đội tự thu thập <span class="num">735.361</span> trang tiếng Việt và <span class="num">222.297</span> trang tiếng Trung (94% bộ 235.518 URL tiếng Trung BTC chỉ định), tổng <span class="num">957.658</span> trang. Không dùng dữ liệu y khoa ngoài.</p></div></details>
+<details class="qa" open><summary><span class="id">C2</span><span>Khó khăn khi thu thập?</span><span class="chev">›</span></summary><div class="ans">
+ <ul><li>Một số trang Trung chặn IP Việt Nam (120ask, 39.net): cào song song từ nhiều kernel Kaggle.</li><li>39.net đi qua bản mobile; Pharmacity lấy lại qua tên miền mới theo hướng dẫn BTC, giữ nguyên doc_id.</li><li>Văn bản mã GBK/GB18030 xử lý riêng; có bộ trích nội dung riêng cho các trang lớn.</li></ul></div></details>
+<details class="qa" open><summary><span class="id">C3</span><span>Sao không dùng tiếng Anh (PubMed)?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Đội đã thu thập <span class="num">239.770</span> abstract PubMed và thử hai lần (theo doc_id nội bộ và theo PMID): cả hai cho <b>0 kết quả đúng</b> trên public, nên loại để không làm giảm precision. Nếu có nhãn tiếng Anh, pipeline thêm được ngay theo cách làm nhánh tiếng Trung.</p></div></details>
+<details class="qa" open><summary><span class="id">C4</span><span>Bản quyền, đạo đức khi thu thập?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Chỉ thu thập đúng danh sách URL BTC cung cấp, cào lịch sự theo tên miền (giới hạn tốc độ, có độ trễ), dùng cho nghiên cứu của cuộc thi. Đầu ra luôn kèm đường dẫn nguồn.</p></div></details>
+<details class="qa" open><summary><span class="id">C5</span><span>Việc thu thập thêm dữ liệu giúp bao nhiêu?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Rất nhiều, đây là một trong những đòn bẩy lớn nhất. Năm đợt bổ sung trang tiếng Việt còn thiếu (12–13/10) đưa public từ <span class="num">0.341</span> lên <span class="num">0.392</span>. Thêm nhánh tiếng Trung sau đó cộng tiếp <span class="num">+0.039</span>.</p><p>Bài học: tài liệu chưa được thu thập thì không mô hình nào tìm ra.</p></div></details>
+<details class="qa" open><summary><span class="id">C6</span><span>Còn 6% URL tiếng Trung chưa lấy được vì sao?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Một số trang chặn hoàn toàn (zysjonline khoảng 6.600 URL), một số trang đã chết hoặc chuyển hướng. 120ask phải cào lại 4 vòng từ nhiều IP Kaggle; 39.net chuyển sang bản mobile mới lấy được.</p></div></details>
+<details class="qa" open><summary><span class="id">C7</span><span>Làm sạch nội dung trang web thế nào?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Bỏ script, style, menu; với các trang lớn (120ask, 39.net, Long Châu, Vinmec…) dùng bộ trích viết riêng để lấy đúng phần nội dung; trang còn lại dùng trafilatura và mật độ chữ. Giữ ranh giới đoạn để cắt đoạn và trích nguyên văn chính xác.</p></div></details>
+<details class="qa" open><summary><span class="id">C8</span><span>Dữ liệu và kết quả có công khai để kiểm tra không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Có. Toàn bộ trang đã thu thập (VI ~1 GB, ZH ~0,27 GB), kết quả trung gian (~2,4 GB) và file bài nộp được chia sẻ qua Google Drive ghi trong tài liệu thuyết minh.</p></div></details>
+</section>
+
+<!-- D -->
+<section class="grp" id="D"><div class="gh hot"><span class="tag">D</span><h2>Nhãn và tính minh bạch</h2></div>
+<p class="gnote">Nhóm câu dễ bị hỏi khó nhất. Trả lời bình tĩnh, khớp với tài liệu thuyết minh.</p>
+<details class="qa" open><summary><span class="id">D1</span><span>Đội lấy nhãn huấn luyện ở đâu khi BTC không cho tập huấn luyện?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Từ tệp <code>details.jsonl</code> hệ thống chấm trả về sau mỗi lần nộp public: tệp cho biết đoạn nào được tính là khớp. Tổng cộng khoảng <span class="num">363 nghìn</span> cặp có nhãn, khoảng <span class="num">32 nghìn</span> cặp dương. Đội có nộp một số bài thăm dò để lấy thêm nhãn.</p>
+ <p>Tất cả đã <b>khai báo đầy đủ trong tài liệu thuyết minh</b> theo thông báo của BTC ngày 23/10.</p></div></details>
+<details class="qa" open><summary><span class="id">D2</span><span>Như vậy có phải "học thuộc đáp án" public không?</span><span class="chev">›</span></summary><div class="ans">
+ <ul><li>Đội <b>không chép đáp án</b> vào bài nộp.</li><li>Mọi xác suất cho câu public là <b>out-of-fold</b> (5 fold theo câu), nên điểm public phản ánh khả năng tổng quát hóa.</li><li>Câu private không có nhãn nào, được chấm bằng mô hình huấn luyện trên nhãn public.</li><li>Từ 22/10, khi BTC tắt thông tin chi tiết, đội không thu thêm nhãn. Lịch sử có trong <code>experiments.csv</code> và git log.</li></ul></div></details>
+<details class="qa" open><summary><span class="id">D3</span><span>Nộp bài thăm dò để lấy nhãn có phải lách luật không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Tại thời điểm đó, hệ thống chấm của BTC trả về tệp chi tiết cho mọi đội và quy định không cấm dùng. Khi BTC ra thông báo ngày 23/10, đội <b>đã dừng thu nhãn từ 22/10</b> và khai báo đầy đủ: bài nào là thăm dò, lấy được bao nhiêu nhãn.</p><p>Các bài thăm dò có điểm thấp (0.05–0.15) và không bao giờ được dùng làm bài chính.</p><span class="tip">Giọng bình tĩnh, không tranh luận. Nhấn mạnh: tuân thủ quy định và minh bạch hoàn toàn.</span></div></details>
+<details class="qa" open><summary><span class="id">D4</span><span>Không có nhãn public thì hệ thống được bao nhiêu?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Các bản không học từ nhãn (BM25 + dense + chọn số tài liệu thích ứng) đạt khoảng <span class="num">0.23</span> public. Phần tăng còn lại đến từ ba nguồn: học trên nhãn (LightGBM, cross-encoder fine-tune), thu thập thêm dữ liệu, và nhánh tiếng Trung. Hai nguồn sau không phụ thuộc nhãn.</p></div></details>
+<details class="qa" open><summary><span class="id">D5</span><span>BTC có thể tái hiện bài nộp không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Có hai mức, hướng dẫn trong README: <b>tái hiện nhanh</b> từ kết quả trung gian (khoảng 1 giờ CPU) và <b>tái hiện đầy đủ</b> từ đầu. Tệp <code>details.jsonl</code> đã được BTC thu hồi; đội giữ bản lưu và cung cấp khi BTC yêu cầu.</p></div></details>
+</section>
+
+<!-- E -->
+<section class="grp" id="E"><div class="gh"><span class="tag">E</span><h2>Ứng dụng demo</h2></div>
+<details class="qa" open><summary><span class="id">E1</span><span>Ứng dụng demo có phải hệ thống đã nộp không?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Là <b>bản rút gọn</b> để chạy trực tiếp trên 1 GPU 8 GB trong vài giây: dense GreenNode + tìm theo tiêu đề cho tiếng Việt, dịch bằng Qwen3-4B, bge-m3 cho tiếng Trung, chấm lại bằng bge-reranker-v2-m3 và cùng công thức chọn số tài liệu F2.</p>
+ <p>Chưa có LightGBM 60 đặc trưng, cross-encoder fine-tune và BM25 toàn văn. <b>Điểm thi đến từ hệ thống đầy đủ.</b></p></div></details>
+<details class="qa" open><summary><span class="id">E2</span><span>Tốc độ, phần cứng?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Khoảng <span class="num">2,5 giây</span> mỗi câu trên RTX 3050 8 GB; khởi động khoảng 30 giây. Tìm kiếm là tìm chính xác (không xấp xỉ) trên 738 nghìn + 222 nghìn vector, chia khối trên GPU.</p>
+ <table><tr><th>Bước</th><th style="text-align:right">Thời gian</th><th style="text-align:right">Tỉ lệ</th></tr>
+ <tr><td>Tìm tiếng Việt (vector + từ khóa)</td><td class="r">0,4–0,5 s</td><td class="r">~18%</td></tr>
+ <tr><td>Dịch câu hỏi sang tiếng Trung</td><td class="r">0,3–0,4 s</td><td class="r">~14%</td></tr>
+ <tr><td>Tìm tiếng Trung</td><td class="r">0,1 s</td><td class="r">~4%</td></tr>
+ <tr class="hl"><td>Chấm lại bằng cross-encoder (100 cặp)</td><td class="r">1,5–1,7 s</td><td class="r">~62%</td></tr></table></div></details>
+<details class="qa" open><summary><span class="id">E3</span><span>Người dùng Việt đọc tài liệu tiếng Trung thế nào?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Đoạn bằng chứng tiếng Trung được trích nguyên văn, có nút dịch sang tiếng Việt (hiện dần từng chữ, khoảng 5–9 giây). Bản dịch ghi rõ "bản dịch máy · tham khảo", còn nguồn gốc luôn mở được.</p></div></details>
+<details class="qa" open><summary><span class="id">E4</span><span>Làm sao biết đoạn trích không bị bịa?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Nút "Xem trong tài liệu gốc" mở toàn văn và cuộn tới đúng đoạn trích đã tô sáng, kèm đường dẫn nguồn. Hệ thống không sinh nội dung y khoa.</p></div></details>
+<details class="qa" open><summary><span class="id">E5</span><span>Ai sẽ dùng? Khác gì Google?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Nhân viên y tế, dược sĩ nhà thuốc, người dân cần tra cứu có nguồn. Khác Google ở ba điểm:</p>
+ <ul><li>Tự tìm thêm nguồn tiếng Trung từ câu hỏi tiếng Việt.</li><li>Trả về đoạn bằng chứng cụ thể, không chỉ đường dẫn.</li><li>Chỉ tìm trong kho y khoa đã chọn lọc.</li></ul></div></details>
+<details class="qa" open><summary><span class="id">E6</span><span>Có cách nào tối ưu ứng dụng tốt hơn nữa không?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Mở đầu: <i>"Bản demo ưu tiên chạy được trên 1 GPU 8 GB. Có ba hướng tối ưu: tốc độ, độ chính xác, và mở rộng."</i></p>
+ <p><b>Tốc độ (có thể dưới 1 giây):</b></p>
+ <ul><li><b>Chấm lại là nút thắt</b> (~62% thời gian): giảm số ứng viên (hiện 60 Việt + 40 Trung), rút cửa sổ văn bản (hiện 900 ký tự), chuyển sang ONNX/TensorRT fp16, hoặc chưng cất sang reranker nhỏ hơn.</li>
+ <li><b>Tìm vector:</b> mỗi câu đang chép khoảng 1,5 GB vector từ RAM lên GPU. Lượng tử hóa int8 (~0,75 GB) để giữ hẳn trên GPU, hoặc dùng FAISS HNSW/IVF: từ 0,4 giây xuống vài chục mili-giây.</li>
+ <li><b>Chạy song song:</b> dịch câu hỏi và tìm tiếng Việt độc lập nhau; chấm tài liệu Việt trong lúc chờ nhánh Trung.</li></ul>
+ <p><b>Độ chính xác (đưa demo về gần hệ thống thi):</b></p>
+ <ul><li>Thay reranker gốc bằng cross-encoder đã fine-tune trên nhãn của đội: tốc độ giữ nguyên, chất lượng tăng.</li>
+ <li>Thêm BM25 toàn văn (hiện chỉ tìm theo tiêu đề) và LightGBM trên đặc trưng rẻ (điểm dense, điểm reranker, tên miền): chỉ tốn vài mili-giây.</li>
+ <li>Phục hồi dấu tiếng Việt cho câu gõ không dấu ("bi gout nen kieng gi"), cách người dùng thật hay gõ.</li></ul>
+ <p><b>Mở rộng và sản phẩm:</b></p>
+ <ul><li>Nhiều người dùng: gom nhiều câu chấm chung một lượt, tách máy chủ dịch riêng (vLLM), chạy nhiều GPU.</li>
+ <li>Kho dữ liệu cập nhật định kỳ (crawler chạy tiếp được sau khi dừng).</li>
+ <li>Tóm tắt có trích dẫn: chỉ khi ghi rõ máy tóm tắt và luôn gắn với đoạn nguyên văn.</li></ul>
+ <span class="tip">Nếu bị hỏi "demo chính xác bao nhiêu so với hệ thống thi": đội chưa đo con số này; trả lời là bản rút gọn và nêu các hướng trên.</span></div></details>
+<details class="qa" open><summary><span class="id">E7</span><span>Gõ câu hỏi ngoài lĩnh vực y khoa thì sao?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Hệ thống vẫn trả về tài liệu gần nghĩa nhất trong kho y khoa, vì chưa có bước nhận diện câu ngoài phạm vi. Hướng cải thiện đơn giản: nếu xác suất cao nhất dưới ngưỡng thì báo "không tìm thấy bằng chứng phù hợp".</p></div></details>
+<details class="qa" open><summary><span class="id">E8</span><span>Nếu nguồn tài liệu sai hoặc lỗi thời thì sao?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Hệ thống truy hồi, không kiểm định nội dung. Vì vậy mỗi kết quả luôn kèm tên miền, đường dẫn và văn bản gốc để người dùng tự đánh giá; ứng dụng có ghi chú "chỉ để tham khảo, không thay thế tư vấn y tế".</p><p>Khi triển khai: ưu tiên nguồn uy tín (hệ thống đã có đặc trưng tiên nghiệm tên miền) và cần chuyên gia rà soát kho.</p></div></details>
+<details class="qa" open><summary><span class="id">E9</span><span>Dữ liệu câu hỏi của người dùng có an toàn không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Toàn bộ chạy cục bộ trên máy của đội: mô hình, chỉ mục, bản dịch. Không gọi API bên ngoài, câu hỏi không rời khỏi máy chủ. Bộ đệm kết quả chỉ lưu câu hỏi và kết quả tìm kiếm, có thể tắt hoặc xóa.</p></div></details>
+<details class="qa" open><summary><span class="id">E10</span><span>Có dùng được trên điện thoại không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Có. Giao diện web tự co theo màn hình điện thoại, chỉ cần trình duyệt; máy chủ có GPU xử lý phần nặng.</p></div></details>
+<details class="qa" open><summary><span class="id">E11</span><span>Khác gì ChatGPT, Perplexity? Sao không hỏi thẳng chatbot?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li><b>Không bịa:</b> chatbot sinh câu trả lời và có thể "ảo giác" (bịa ra) cả thông tin lẫn nguồn. Hệ thống của đội chỉ trả <b>đoạn trích nguyên văn</b> có thật trong tài liệu, mở được bản gốc để kiểm tra (E4).</li><li><b>Kho nguồn kiểm soát được:</b> chỉ tìm trong kho y khoa đã chọn, không lẫn diễn đàn hay quảng cáo; có thể thay bằng tài liệu nội bộ của bệnh viện.</li><li><b>Chạy cục bộ, miễn phí:</b> dữ liệu bệnh nhân không gửi ra ngoài; không tốn phí API.</li><li><b>Bổ trợ chứ không cạnh tranh:</b> có thể làm lớp tìm bằng chứng cho một chatbot, buộc chatbot trả lời dựa trên đoạn trích (RAG có trích dẫn).</li></ul><span class="tip">Nói ý "không bịa, kiểm chứng được" trước tiên: đây là điểm giám khảo y khoa quan tâm nhất.</span></div></details>
+</section>
+
+<!-- F -->
+<section class="grp" id="F"><div class="gh"><span class="tag">F</span><h2>Hạn chế và hướng phát triển</h2></div>
+<details class="qa" open><summary><span class="id">F1</span><span>Hạn chế lớn nhất?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Trần điểm do dữ liệu quyết định: còn khoảng 6% URL tiếng Trung chưa thu thập được, và chưa có nguồn tiếng Anh hữu ích. Cắt đoạn vẫn theo cửa sổ cố định, chưa theo ranh giới ngữ nghĩa.</p></div></details>
+<details class="qa" open><summary><span class="id">F2</span><span>Nếu có thêm thời gian?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Cắt đoạn theo ngữ nghĩa, thêm reranker riêng cho cấp đoạn, và đóng gói ứng dụng tra cứu cho nhân viên y tế và nhà thuốc (bản demo hôm nay là bước đầu).</p></div></details>
+<details class="qa" open><summary><span class="id">F3</span><span>Triển khai thực tế cần gì?</span><span class="chev">›</span></summary><div class="ans">
+ <p>Kho tài liệu cập nhật định kỳ, chỉ mục chuyển sang tìm xấp xỉ (FAISS) khi kho lớn hơn, và chuyên gia y tế đánh giá chất lượng bằng chứng trước khi dùng cho bệnh nhân.</p></div></details>
+<details class="qa" open><summary><span class="id">F4</span><span>Mở rộng sang ngôn ngữ khác (Anh, Hàn…) thế nào?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Kiến trúc đã tách theo nhánh: mỗi ngôn ngữ cần mô hình nhúng đa ngôn ngữ, bước dịch câu hỏi và một LightGBM riêng; sau đó trộn chung theo xác suất. Nhánh tiếng Trung được thêm vào đúng theo cách này, không phải sửa nhánh tiếng Việt.</p></div></details>
+<details class="qa" open><summary><span class="id">F5</span><span>Chi phí vận hành một hệ thống thực tế?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Bản demo chạy trên một GPU 8 GB phổ thông, khoảng 2,5 giây mỗi câu, tức khoảng 1.400 câu/giờ nếu xử lý lần lượt. Câu hỏi lặp lại trả ngay nhờ bộ đệm. Không phát sinh chi phí API.</p></div></details>
+<details class="qa" open><summary><span class="id">F6</span><span>Đã thử với người dùng thật chưa?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Chưa đánh giá chính thức với người dùng. Bước tiếp theo: thử với một nhóm dược sĩ và bác sĩ, đo xem bằng chứng có giúp trả lời nhanh và đúng hơn không.</p><span class="tip">Trả lời trung thực, kèm kế hoạch cụ thể.</span></div></details>
+<details class="qa" open><summary><span class="id">F7</span><span>Có kế hoạch phát triển sản phẩm sau cuộc thi không?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p><span class="fill">[điền: định hướng của đội, ví dụ mở mã nguồn, hợp tác nhà thuốc hoặc bệnh viện]</span></p></div></details>
+<details class="qa" open><summary><span class="id">F8</span><span>Ý nghĩa với y tế và xã hội Việt Nam?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li>Nhiều tài liệu y khoa chất lượng chỉ có bằng tiếng nước ngoài; hệ thống giúp người Việt tiếp cận nguồn tiếng Trung bằng chính câu hỏi tiếng Việt, kèm bản dịch.</li><li>Nhân viên y tế, dược sĩ tuyến cơ sở tra cứu nhanh bằng chứng có nguồn, chạy được trên máy rẻ, không cần internet tới dịch vụ nước ngoài.</li><li>Người dân có công cụ đọc thông tin y tế có nguồn gốc, thay vì tin lời đồn trên mạng.</li></ul></div></details>
+</section>
+
+<!-- G -->
+<section class="grp" id="G"><div class="gh"><span class="tag">G</span><h2>Câu hỏi bất ngờ: cách xử lý</h2></div>
+<details class="qa" open><summary><span class="id">G1</span><span>Không biết câu trả lời</span><span class="chev">›</span></summary><div class="ans"><p>"Phần này đội chưa đo chính xác; theo hiểu biết của đội thì … ; đội xin bổ sung sau qua email BTC." <b>Không bịa số.</b></p></div></details>
+<details class="qa" open><summary><span class="id">G2</span><span>Bị so sánh điểm với đội khác</span><span class="chev">›</span></summary><div class="ans"><p>Nhắc ba điểm khác biệt (xuyên ngôn ngữ, chọn số tài liệu theo F2, minh bạch và tái hiện được) và ứng dụng chạy thật.</p></div></details>
+<details class="qa" open><summary><span class="id">G3</span><span>Chi phí?</span><span class="chev">›</span></summary><div class="ans"><p>Toàn bộ huấn luyện dùng GPU miễn phí (Kaggle T4×2, Colab) và một GPU cá nhân RTX 3050; không tốn chi phí API.</p></div></details>
+<details class="qa" open><summary><span class="id">G4</span><span>Thời gian chạy toàn bộ 1.200 câu?</span><span class="chev">›</span></summary><div class="ans"><p><span class="fill">[điền: thời gian chạy pipeline đầy đủ, ví dụ từ log tạo bài nộp]</span></p></div></details>
+<details class="qa" open><summary><span class="id">G5</span><span>Phân công trong đội?</span><span class="chev">›</span></summary><div class="ans"><p><span class="fill">[điền]</span></p></div></details>
+<details class="qa" open><summary><span class="id">G6</span><span>Demo lỗi hoặc mạng Teams chậm ngay lúc trình bày<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Nói ngắn: "Đường truyền đang chậm, đội xin chiếu video ghi sẵn của cùng ứng dụng." Rồi chuyển sang video dự phòng; không cố sửa trực tiếp quá 15 giây.</p></div></details>
+<details class="qa" open><summary><span class="id">G7</span><span>Giám khảo hỏi chi tiết sâu về mã nguồn<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Trả lời ý chính, rồi chỉ đúng tệp: "Phần này nằm ở <code>scripts/merge_zh.py</code>, mô tả ở mục 1.1 tài liệu thuyết minh." Cho thấy mọi thứ đều kiểm tra được.</p></div></details>
+<details class="qa" open><summary><span class="id">G8</span><span>Câu hỏi bị lặp lại hoặc không nghe rõ<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>"Xin phép nhắc lại câu hỏi để chắc đội hiểu đúng: …". Vừa tránh trả lời lệch, vừa có thêm vài giây suy nghĩ.</p></div></details>
+</section>
+
+<section class="grp" id="H"><div class="gh"><span class="tag">H</span><h2>Thực nghiệm và bài học</h2></div>
+<details class="qa" open><summary><span class="id">H1</span><span>Làm sao biết một cải tiến là thật chứ không phải nhiễu?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Mỗi thay đổi được đo offline bằng bộ mô phỏng điểm F2 trên các xác suất out-of-fold (<code>scripts/f2sim.py</code>). Chỉ nộp khi vượt ngưỡng đặt trước (ví dụ +0.0005 F2 hoặc AUC vượt bản tốt nhất). Nhiều bản bị loại vì không vượt ngưỡng dù trông hứa hẹn.</p></div></details>
+<details class="qa" open><summary><span class="id">H2</span><span>Bài học lớn nhất của đội?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <ul><li><b>Dữ liệu trước, mô hình sau:</b> thu thập đủ trang và thêm tiếng Trung tăng điểm nhiều hơn mọi mẹo mô hình.</li><li><b>Đo trước khi nộp:</b> đánh giá offline trung thực giúp không bị đánh lừa bởi dao động.</li><li><b>Hiểu thước đo:</b> tối ưu thẳng F2 kỳ vọng thay vì top-k cố định.</li></ul></div></details>
+<details class="qa" open><summary><span class="id">H3</span><span>Nếu làm lại từ đầu, đội sẽ làm khác gì?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Thu thập đầy đủ dữ liệu và làm nhánh tiếng Trung sớm hơn: nhánh tiếng Trung chỉ được thêm ngày 21/10 nhưng tăng gần 0.04. Và dựng bộ đánh giá offline ngay từ ngày đầu.</p></div></details>
+<details class="qa" open><summary><span class="id">H4</span><span>Đóng góp của từng thành phần (ablation)?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <table><tr><th>Thay đổi</th><th style="text-align:right">Public</th></tr><tr><td>BM25 → thêm dense GreenNode</td><td class="r">0.12 → 0.20</td></tr><tr><td>LightGBM LTR + đoạn dài hơn</td><td class="r">0.24 → 0.30</td></tr><tr><td>Chọn số tài liệu theo F2 kỳ vọng</td><td class="r">+0.011</td></tr><tr><td>Thu thập thêm trang VI còn thiếu</td><td class="r">0.341 → 0.392</td></tr><tr><td>Cross-encoder huấn luyện trên toàn bộ nhãn</td><td class="r">0.393 → 0.406</td></tr><tr class="hl"><td>Nhánh tiếng Trung + dịch câu hỏi</td><td class="r">0.410 → 0.449</td></tr></table><span class="tip">Các số trên theo luật chấm cũ, đo tuần tự (mỗi bước cộng vào bước trước).</span></div></details>
+<details class="qa" open><summary><span class="id">H5</span><span>Đánh giá có đủ tin cậy khi chỉ có nhãn của 600 câu public?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p>Đánh giá theo 5 fold <b>theo câu</b>, nên mỗi câu được chấm bởi mô hình chưa thấy nó, giống tình huống câu mới. Điểm private (0.3801) tuy thấp hơn public nhưng 4 cấu hình khác nhau đều chênh dưới 0.003, cho thấy hệ thống ổn định chứ không phụ thuộc may rủi của một cấu hình.</p></div></details>
+<details class="qa" open><summary><span class="id">H6</span><span>Phần nào của bài toán khó nhất?<span class="nw">mới</span></span><span class="chev">›</span></summary><div class="ans">
+ <p><b>Dữ liệu và nhãn.</b> BTC chỉ cho danh sách URL, không cho văn bản và không cho tập huấn luyện. Đội phải tự thu thập gần 1 triệu trang (có trang chặn IP Việt Nam, mã hóa tiếng Trung khác nhau) và tự xây cách đánh giá trung thực.</p><p>Khó thứ hai là <b>xuyên ngôn ngữ</b>: câu hỏi tiếng Việt nhưng đáp án nằm cả trong tài liệu tiếng Trung.</p></div></details>
+</section>
+
+<div class="empty" id="empty">Không có câu hỏi nào khớp. Thử từ khác.</div>
+
+<section class="grp" id="chk"><div class="gh"><span class="tag">✓</span><h2>Kiểm tra trước giờ thi (sáng 14/11)</h2></div>
+<div class="card check" id="checks">
+ <label><input type="checkbox"><span>Khởi động <code>bash app_live/run.sh</code> lúc khoảng 08h10, chờ "Sẵn sàng", chạy thử 1 câu.</span></label>
+ <label><input type="checkbox"><span>Tắt các chương trình khác dùng GPU; thử chia sẻ cửa sổ trình duyệt trên Teams.</span></label>
+ <label><input type="checkbox"><span>Trình duyệt phóng to 125%, mở sẵn tab slide và tab ứng dụng.</span></label>
+ <label><input type="checkbox"><span>Video dự phòng <code>app_live/demo_backup.mp4</code> mở sẵn trong trình phát.</span></label>
+ <label><input type="checkbox"><span>Tên tài khoản Teams: "Tên đội – Họ tên trưởng nhóm".</span></label>
+</div>
+</section>
+
+<footer>ViBioMIR · aichickenteam · Chung kết R2AI 2026 · 14/11/2026</footer>
+</main>
+
+<script>
+(function () {
+ const qs = [...document.querySelectorAll("details.qa")], grps = [...document.querySelectorAll("section.grp:not(#chk)")];
+ const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+ qs.forEach(d => { d._raw = d.textContent.toLowerCase(); d._t = norm(d.textContent); });
+ const inp = document.getElementById("q");
+ inp.addEventListener("input", () => {
+  const raw = inp.value.trim().toLowerCase(), accented = norm(raw) !== raw, v = accented ? raw : norm(raw); let any = false;
+  qs.forEach(d => { const T = accented ? d._raw : d._t, hit = !v || v.split(/\s+/).every(w => T.includes(w)); d.classList.toggle("hide", !hit); if (hit) { any = true; if (v) d.open = true; } });
+  grps.forEach(g => g.classList.toggle("hide", !g.querySelector("details.qa:not(.hide)")));
+  document.getElementById("empty").style.display = any ? "none" : "block";
+ });
+ document.addEventListener("keydown", e => { if (e.key === "/" && document.activeElement !== inp) { e.preventDefault(); inp.focus(); } if (e.key === "Escape" && document.activeElement === inp) { inp.value = ""; inp.dispatchEvent(new Event("input")); } });
+ const tog = document.getElementById("tog");
+ tog.onclick = () => { const open = qs.some(d => d.open); qs.forEach(d => d.open = !open); tog.querySelector("span").textContent = open ? "Mở tất cả" : "Thu gọn tất cả"; };
+ const th = document.getElementById("theme");
+ const setTheme = t => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+ try { setTheme(localStorage.getItem("qa_theme")); } catch (e) {}
+ th.onclick = () => { const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; const t = dark ? "light" : "dark"; setTheme(t); try { localStorage.setItem("qa_theme", t); } catch (e) {} };
+ const boxes = [...document.querySelectorAll("#checks input")];
+ let saved = []; try { saved = JSON.parse(localStorage.getItem("qa_checks") || "[]"); } catch (e) {}
+ boxes.forEach((b, i) => { b.checked = !!saved[i]; b.onchange = () => { try { localStorage.setItem("qa_checks", JSON.stringify(boxes.map(x => x.checked))); } catch (e) {} }; });
+})();
+</script>
+</body></html>
