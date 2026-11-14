@@ -1,13 +1,24 @@
-# R2AI 2026 Stage 3 – ViBioMIR: truy hồi y khoa đa ngôn ngữ (đội aichickenteam)
+# 🥈 Top 2 chung kết R2AI 2026 – ViBioMIR: truy hồi bằng chứng y khoa đa ngôn ngữ Việt–Trung
 
-Tài liệu thuyết minh đầy đủ (kiến trúc, dữ liệu, mô hình, khai báo nguồn nhãn): **[docs/THUYET_MINH.md](docs/THUYET_MINH.md)**.
-Nhật ký kỹ thuật và mọi thí nghiệm: [HANDOFF.md](HANDOFF.md), [experiments.csv](experiments.csv).
+> **Đội aichickenteam đạt TOP 2 vòng chung kết cuộc thi R2AI 2026 – Stage 3 (bài toán ViBioMIR)**, ngày 14/11/2026.
 
-Bài nộp private: `submissions/private/P7_v76b.zip` (ID 7924). Public: 0.4077 theo luật chấm đoạn mới (23/10/2026).
+Với mỗi câu hỏi y khoa tiếng Việt, hệ thống tìm tài liệu liên quan và trích **nguyên văn** đoạn bằng chứng từ kho **~960 nghìn trang** (738k tiếng Việt + 222k tiếng Trung) do đội tự thu thập. Điểm thi = trung bình F2‑macro cấp tài liệu và cấp đoạn.
 
-**Kết quả:** **Top 2 vòng chung kết** (14/11/2026). Private 0.3801 (bài P7_v76b; 4 bài private 0.3778–0.3801), public 0.4077.
+| Kết quả | |
+|---|---|
+| **Chung kết** | **Top 2** (14/11/2026) |
+| Vòng private | **0.3801** (bài `P7_v76b`, ID 7924); 4 bài private với cấu hình khác nhau nằm trong 0.3778–0.3801 |
+| Public | 0.4077 theo luật chấm đoạn mới (23/10/2026); 0.4488 theo luật cũ |
+| Baseline BM25 của BTC | 0.3764 (public) |
 
-Tài liệu chung kết: hỏi đáp [docs/HOI_DAP_CHUNG_KET.md](docs/HOI_DAP_CHUNG_KET.md) · ứng dụng tra cứu trực tiếp [app_live/](app_live/README.md) (`bash app_live/run.sh`).
+**Điểm nổi bật**
+- **Xuyên ngôn ngữ thật sự:** dịch câu hỏi VI→ZH (Qwen2.5‑7B) để tìm thêm bằng chứng trong 222k trang tiếng Trung (+0.039 điểm public).
+- **Xếp hạng bằng học máy:** LightGBM trên ~60 tín hiệu (BM25, GreenNode, bge‑m3, e5, cross‑encoder bge‑reranker fine‑tune, kNN, PRF), AUC 0.83 → 0.89 so với trộn thứ hạng thủ công.
+- **Biết dừng đúng chỗ:** mỗi câu chọn số tài liệu tối đa F2 kỳ vọng (30–300) thay vì top‑k cố định.
+- **Ứng dụng chạy thật:** [app_live/](app_live/README.md) trả lời câu hỏi bất kỳ trong ~2,5 giây trên một GPU 8 GB (`bash app_live/run.sh`).
+- **Minh bạch, tái hiện được:** mô hình mã nguồn mở, nhật ký mọi thí nghiệm trong [experiments.csv](experiments.csv), dữ liệu và kết quả trung gian trên Google Drive (mục 2).
+
+Tài liệu: [thuyết minh đầy đủ](docs/THUYET_MINH.md) (kiến trúc, dữ liệu, mô hình, khai báo nguồn nhãn) · [hỏi đáp chung kết](docs/HOI_DAP_CHUNG_KET.md) · [nhật ký kỹ thuật](HANDOFF.md).
 
 ---
 

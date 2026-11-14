@@ -1,6 +1,7 @@
 # Tài liệu thuyết minh sản phẩm – R2AI 2026 Stage 3 (ViBioMIR)
 
-**Đội:** aichickenteam  
+**Đội:** aichickenteam – **Top 2 chung kết R2AI 2026** (14/11/2026)  
+**Điểm private:** 0.3801  
 **Bài toán:** với mỗi câu hỏi y khoa tiếng Việt, trả về danh sách tài liệu (`relevant_docs`) và đoạn trích nguyên văn (`relevant_chunks`) từ kho đa ngôn ngữ VI / ZH / EN của BTC. Điểm = trung bình F2-macro cấp tài liệu và F2-macro cấp đoạn.  
 **Bài nộp private:** `submissions/private/P7_v76b.zip` (submission ID 7924, phase 45).  
 **Điểm public tương ứng:** 0.4077 theo luật chấm đoạn mới (BTC cập nhật 23/10/2026); cùng hệ thống trước khi đổi luật đạt 0.4488 (v75).
