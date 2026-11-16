@@ -5,6 +5,11 @@
 ![Corpus](https://img.shields.io/badge/kho-960k%20trang%20VI%2BZH-1f6feb?style=for-the-badge)
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Demo MedBridge-VZ: hỏi tiếng Việt, hệ thống dịch sang tiếng Trung, tìm trong 960k trang và trích nguyên văn đoạn bằng chứng" width="800">
+  <br><sub>Ứng dụng tra cứu trực tiếp (<code>bash app_live/run.sh</code>): hỏi tiếng Việt → dịch sang tiếng Trung → tìm trong 960k trang → chấm lại bằng cross-encoder → trích nguyên văn đoạn bằng chứng, ~2,7 giây/câu trên RTX 3050.</sub>
+</p>
+
 > **Đội aichickenteam đạt TOP 2 vòng chung kết cuộc thi R2AI 2026 – Stage 3 (bài toán ViBioMIR)**, ngày 14/11/2026.
 
 Với mỗi câu hỏi y khoa tiếng Việt, hệ thống tìm tài liệu liên quan và trích **nguyên văn** đoạn bằng chứng từ kho **~960 nghìn trang** (738k tiếng Việt + 222k tiếng Trung) do đội tự thu thập. Điểm thi = trung bình F2‑macro cấp tài liệu và cấp đoạn.
