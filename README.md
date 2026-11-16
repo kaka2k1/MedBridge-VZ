@@ -1,4 +1,9 @@
-# 🥈 Top 2 chung kết R2AI 2026 – ViBioMIR: truy hồi bằng chứng y khoa đa ngôn ngữ Việt–Trung
+# 🥈 MedBridge-VZ — cầu nối bằng chứng y khoa Việt–Trung
+
+![R2AI 2026](https://img.shields.io/badge/R2AI%202026-Top%202%20chung%20k%E1%BA%BFt-C0C0C0?style=for-the-badge)
+![Private](https://img.shields.io/badge/private-0.3801-2ea44f?style=for-the-badge)
+![Corpus](https://img.shields.io/badge/kho-960k%20trang%20VI%2BZH-1f6feb?style=for-the-badge)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
 > **Đội aichickenteam đạt TOP 2 vòng chung kết cuộc thi R2AI 2026 – Stage 3 (bài toán ViBioMIR)**, ngày 14/11/2026.
 

@@ -385,13 +385,13 @@ kaggle datasets init -p .                 # sửa dataset-metadata.json: "title"
 kaggle datasets create -p . --dir-mode zip          # lần đầu (mặc định private)
 kaggle datasets version -p . -m "thêm shard ZH" --dir-mode zip   # các lần sau
 ```
-Code: tạo thêm dataset `<user>/r2ai-code` từ repo này (hoặc trong notebook `!git clone https://github.com/kaka2k1/ai-rag`).
+Code: tạo thêm dataset `<user>/r2ai-code` từ repo này (hoặc trong notebook `!git clone https://github.com/kaka2k1/MedBridge-VZ`).
 
 ### Bước 3 – Notebook Kaggle chạy pipeline (commit chạy nền)
 Tạo `kaggle/run_pipeline.ipynb` (hoặc script) với các ô:
 ```python
-!git clone -q https://github.com/kaka2k1/ai-rag /kaggle/working/ai-rag
-%cd /kaggle/working/ai-rag
+!git clone -q https://github.com/kaka2k1/MedBridge-VZ /kaggle/working/MedBridge-VZ
+%cd /kaggle/working/MedBridge-VZ
 !pip -q install jieba bm25s pyvi
 DATA = '/kaggle/input/r2ai-data'
 # 1) ZH BM25 – dùng 4 nhân: thêm multiprocessing.Pool(4) cho bước jieba trong colab/zh_search_fast.py
